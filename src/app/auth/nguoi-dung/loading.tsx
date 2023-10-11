@@ -1,15 +1,12 @@
-import { Card } from "@/components/ui/card";
-import { Loader2 } from "lucide-react";
+"use client";
+
+import { Card, Spinner } from "@nextui-org/react";
 
 export default function LoadingLayout() {
 	return (
-		<Card className="flex h-full flex-col">
-			<div className="flex h-full items-center justify-center gap-2">
-				<span>Đang tải </span>
-
-				<div className="animate-spin">
-					<Loader2 />
-				</div>
+		<Card className="flex h-full w-full items-start justify-center">
+			<div className="flex h-full w-full flex-1 items-center justify-center">
+				<Spinner label="Loading..." color="primary" />
 			</div>
 		</Card>
 	);

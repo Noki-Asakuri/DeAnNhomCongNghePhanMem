@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+
 import { SignOutButton } from "@clerk/nextjs";
+import { Button, Card, Divider } from "@nextui-org/react";
 
 import type { ReactNode } from "react";
 
@@ -11,34 +13,30 @@ export const NguoiDungSideBar = () => {
 	const router = useRouter();
 
 	return (
-		<div className="flex w-1/5 flex-col items-center justify-start gap-2 rounded-lg bg-muted p-2 text-muted-foreground">
-			<div className="w-full">
-				<TabItem currentPath={currentPath} href={"/auth/nguoi-dung/thong-tin-chung"}>
-					Thông tin chung
-				</TabItem>
-			</div>
+		<Card className="h-max w-1/5 flex-col items-center justify-start gap-2 p-2">
+			<TabItem currentPath={currentPath} href={"/auth/nguoi-dung/thong-tin-tai-khoan"}>
+				Thông tin Tài Khoản
+			</TabItem>
 
-			<div className="w-full">
-				<TabItem currentPath={currentPath} href={"/auth/nguoi-dung/tin-da-luu"}>
-					Tin đã lưu
-				</TabItem>
-			</div>
+			<TabItem currentPath={currentPath} href={"/auth/nguoi-dung/thong-tin-nguoi-dung"}>
+				Thông tin Người Dùng
+			</TabItem>
 
-			<div className="w-full">
-				<TabItem currentPath={currentPath} href={"/auth/nguoi-dung/tin-da-xem"}>
-					Tin đã xem
-				</TabItem>
-			</div>
+			<TabItem currentPath={currentPath} href={"/auth/nguoi-dung/tin-da-luu"}>
+				Tin đã lưu
+			</TabItem>
 
-			<div className="w-full">
-				<SignOutButton
-					signOutCallback={() => {
-						router.refresh();
-					}}
-				>
-					<button className="w-full rounded-lg p-3 hover:bg-[#0a0a0a] hover:text-white">Đăng xuất</button>
-				</SignOutButton>
-			</div>
+			<TabItem currentPath={currentPath} href={"/auth/nguoi-dung/tin-da-xem"}>
+				Tin đã xem
+			</TabItem>
+
+			<SignOutButton signOutCallback={() => router.refresh()}>
+				<Button color="danger" className="w-full" variant="light">
+					Đăng xuất
+				</Button>
+			</SignOutButton>
+
+			<Divider orientation="horizontal" />
 
 			<div className="h-full w-full text-center text-sm">
 				<span className="block">Cần hỗ trợ? Vui lòng liên hệ: </span>
@@ -47,7 +45,7 @@ export const NguoiDungSideBar = () => {
 					phungtanphat23@gmail.com
 				</a>
 			</div>
-		</div>
+		</Card>
 	);
 };
 
@@ -55,14 +53,8 @@ const TabItem = ({ href, currentPath, children }: { href: string; currentPath: s
 	const isActive = currentPath == href;
 
 	return (
-		<button
-			className={`w-full rounded-lg hover:bg-[#0a0a0a] hover:text-white ${
-				isActive ? "dark:bg-[#0a0a0a] dark:text-white" : "bg-transparent"
-			}`}
-		>
-			<Link href={href} className="block p-3">
-				{children}
-			</Link>
-		</button>
+		<Button as={Link} href={href} className="w-full" variant={isActive ? "solid" : "light"}>
+			{children}
+		</Button>
 	);
 };

@@ -1,55 +1,59 @@
 "use client";
 
-import Image from "next/image";
-import Link from "next/link";
-
-import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-
-import type { BanTinTable } from "@/server/db/schema/banTin";
-import type { DanhGiaTable } from "@/server/db/schema/danhGia";
-import type { DanhMucTable } from "@/server/db/schema/danhMuc";
-
-import { dayjs } from "@/utils/dayjs";
+import NextLink from "next/link";
 
 import { encodeBanTinPath } from "@/utils/path";
-import type { InferModel } from "drizzle-orm";
-import { MessageCircle } from "lucide-react";
+import { dayjs } from "@/utils/dayjs";
+
+import { Card, CardFooter, Divider, Image, Chip, Button, Link } from "@nextui-org/react";
+import { type getBanTinHot } from "./data";
+import { Eye, Heart, MessagesSquare } from "lucide-react";
 
 type ParamsType = {
-	item: InferModel<typeof BanTinTable, "select"> & {
-		danhMuc: InferModel<typeof DanhMucTable, "select"> | null;
-		danhGia: InferModel<typeof DanhGiaTable, "select">[] | null;
-	};
+	banTin: Awaited<ReturnType<typeof getBanTinHot>>[number];
 };
 
-const BanTinHot = ({ item }: ParamsType) => {
-	const banTinPath = encodeBanTinPath(item);
+export const BanTinHot = ({ banTin }: ParamsType) => {
+	const banTinPath = encodeBanTinPath(banTin);
 
 	return (
-		<Link href={banTinPath} className="h-full overflow-hidden rounded-xl shadow-[4px_4px_10px_1px_rgba(0,0,0,0.25)]">
-			<Card className="grid h-full grid-cols-1 grid-rows-[208px_1fr] rounded-none border-none shadow-none">
-				<div className="relative h-full w-full border-b-[1px] border-b-gray-400">
-					<Image alt={item.tenBanTin} src={item.hinhNho} fill />
-				</div>
-				<div className="grid grid-rows-[1fr_max-content] gap-3 px-6 py-3">
-					<CardHeader className="p-0">
-						<CardTitle className="text-left">{item.tenBanTin}</CardTitle>
-						<CardDescription className="line-clamp-2">{item.noiDungTomTat}</CardDescription>
-					</CardHeader>
-					<CardFooter className="flex items-center justify-between p-0">
-						<div className="text-sm">{dayjs(item.ngayDang).fromNow()}</div>
+		<div className="relative">
+			<Chip classNames={{ base: "absolute left-2 top-2 z-20", content: "flex items-center gap-1" }}>
+				<Eye size={20} /> {banTin.luoiXem}
+			</Chip>
 
-						<div>{item.danhMuc?.tenDanhMuc}</div>
+			<Button isIconOnly size="sm" startContent={<Heart size={20} />} className="absolute right-2 top-2 z-20" />
+			<Card as={"div"} isHoverable isPressable className="h-full shadow-[4px_4px_10px_1px_rgba(0,0,0,0.25)] shadow-default-400/60">
+				<NextLink className="block aspect-video h-auto w-full" href={banTinPath}>
+					<Image
+						removeWrapper
+						className="h-full w-full rounded-b-none object-cover"
+						alt={banTin.NoiDungTomTat}
+						src={banTin.PreviewImage}
+					/>
+				</NextLink>
 
-						<div className="flex items-center gap-1.5">
-							<MessageCircle size={20} />
-							<span>{item.danhGia?.length ?? 0}</span>
+				<CardFooter className="flex-col justify-between gap-2 border-t-1 border-zinc-100/50">
+					<NextLink href={banTinPath} className="flex flex-col items-center gap-2">
+						<h2 className="flex h-12 items-center text-center font-semibold">{banTin.TenBanTin}</h2>
+						<p className="line-clamp-2">{banTin.NoiDungTomTat}</p>
+					</NextLink>
+
+					<Divider orientation="horizontal" />
+
+					<Chip classNames={{ base: "max-w-full w-full", content: "grid w-full grid-cols-3 gap-3 place-items-center" }}>
+						<Link underline="hover" as={NextLink} href={`/danhMuc/${banTin.DanhMuc.TenDanhMuc}`}>
+							{banTin.DanhMuc.TenDanhMuc}
+						</Link>
+
+						<span>{dayjs(banTin.NgayDang).fromNow()}</span>
+
+						<div className="flex gap-2">
+							<MessagesSquare size={20} /> {banTin.DanhGia.length}
 						</div>
-					</CardFooter>
-				</div>
+					</Chip>
+				</CardFooter>
 			</Card>
-		</Link>
+		</div>
 	);
 };
-
-export { BanTinHot };

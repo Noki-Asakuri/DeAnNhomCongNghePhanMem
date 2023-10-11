@@ -1,26 +1,40 @@
+"use client";
+
+import { Button, ButtonGroup, Link } from "@nextui-org/react";
 import { AlertTriangle } from "lucide-react";
+
 import type { Metadata } from "next";
-import Link from "next/link";
+import NextLink from "next/link";
 
 export const metadata: Metadata = {
-	title: "404 - Trang không tồn tại",
+	title: "Lỗi 404 - Trang không tồn tại",
 };
 
 export default function NotFoundPage() {
 	return (
-		<div className="mt-40 flex flex-col items-center">
-			<h1 className="flex items-center justify-center text-9xl font-bold">
-				<AlertTriangle size={60} /> 404 <AlertTriangle size={60} />
-			</h1>
-			<h2 className="mt-0 text-6xl font-medium">Trang không tồn tại</h2>
+		<div className="container mx-auto flex max-w-5xl flex-1 items-center justify-center">
+			<div className="flex w-max flex-col items-center gap-2 px-2 py-4">
+				<h1 className="flex items-center justify-center gap-2 text-5xl font-bold text-red-500">
+					<AlertTriangle size={48} strokeWidth={1.5} /> Lỗi 404 <AlertTriangle size={48} strokeWidth={1.5} />
+				</h1>
 
-			<p className="mt-8 text-xl text-gray-500">
-				The page you are looking for could not be found. Please go back to the homepage or contact us.
-			</p>
+				<h2 className="text-2xl font-semibold text-red-500">Trang không tồn tại</h2>
 
-			<Link href="/" className="mt-12 text-2xl text-blue-500">
-				Go Back Home
-			</Link>
+				<p className="text-center text-lg">
+					Trang mà bạn đang tìm không tồn tại. <br /> Vui lòng quay lại trang chính hoặc liên hệ chúng tôi nếu bạn nghĩ đây là 1
+					lỗi kỹ thuật
+				</p>
+
+				<ButtonGroup>
+					<Button as={NextLink} href="/" color="primary">
+						Quay lại trang chủ
+					</Button>
+
+					<Button as={Link} isExternal href="mailto:phungtanphat23@gmail.com" color="secondary">
+						Liên hệ kỹ thuật viên
+					</Button>
+				</ButtonGroup>
+			</div>
 		</div>
 	);
 }

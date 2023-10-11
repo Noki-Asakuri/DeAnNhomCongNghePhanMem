@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Typewriter from "typewriter-effect";
-import { Button } from "@ui/button";
+import { Button } from "@nextui-org/react";
 
 const HeroMain = () => {
 	return (
@@ -35,7 +35,7 @@ const HeroMain = () => {
 							/>
 						</h3>
 
-						<Button className="w-1/2 rounded-full dark:bg-black dark:text-white">
+						<Button className="w-1/2" color="primary" radius="full">
 							Bắt đầu đọc
 						</Button>
 					</div>

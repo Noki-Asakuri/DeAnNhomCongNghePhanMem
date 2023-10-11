@@ -1,47 +1,51 @@
 "use client";
 
+import { Button, Input } from "@nextui-org/react";
 import { Search } from "lucide-react";
-import Link from "next/link";
-import { useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+
+import { useRef, useTransition, type MouseEvent } from "react";
 
 export const SearchBar = () => {
-	const [isExpended, setExpended] = useState(false);
-	const [query, setQuery] = useState("");
+	const router = useRouter();
+	const inputRef = useRef<HTMLInputElement>(null);
 
-	const aRef = useRef<HTMLAnchorElement>(null);
+	const [isLoading, startTransition] = useTransition();
+
+	const handleSubmit = (event: MouseEvent<HTMLButtonElement>) => {
+		event.preventDefault();
+		if (inputRef.current?.value === "") return;
+
+		const searchQuery = new URLSearchParams();
+		searchQuery.set("query", inputRef.current!.value);
+
+		router.push("/tim-kiem?" + searchQuery.toString());
+	};
 
 	return (
-		<form
-			className={`flex w-max gap-2 rounded-lg px-3 transition-all ${isExpended ? "bg-muted" : "bg-transparent"}`}
-			onSubmit={(event) => {
-				event.preventDefault();
-				aRef.current?.click();
-			}}
-		>
-			<Link ref={aRef} href={{ pathname: "/timkiem", query: { query } }}></Link>
+		<form className="group flex w-max">
+			<div className="w-40">
+				<Input
+					isClearable
+					ref={inputRef}
+					placeholder="Tìm kiếm"
+					type="text"
+					name="query"
+					classNames={{ inputWrapper: "rounded-r-none" }}
+				/>
+			</div>
 
-			{isExpended && (
-				<div className={isExpended ? "w-max" : "w-0"}>
-					<input
-						type="text"
-						name="query"
-						className="bg-transparent py-2 focus:outline-none"
-						onChange={(event) => setQuery(event.currentTarget.value)}
-					/>
-				</div>
-			)}
-
-			<button
-				type="button"
-				onClick={(event) => {
-					event.preventDefault();
-
-					if (!isExpended) setExpended(true);
-					else aRef.current?.click();
+			<Button
+				isIconOnly
+				className="rounded-l-none"
+				type="submit"
+				startContent={!isLoading ? <Search size={20} /> : null}
+				isLoading={isLoading}
+				onClick={(e) => {
+					e.preventDefault();
+					startTransition(() => handleSubmit(e));
 				}}
-			>
-				<Search size={20} />
-			</button>
+			/>
 		</form>
 	);
 };

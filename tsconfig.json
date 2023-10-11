@@ -32,7 +32,8 @@
 		"**/*.cjs",
 		"**/*.mjs",
 		".next/types/**/*.ts",
-		"src/components/Navbar/Realtime.tss"
+		"src/components/Navbar/Realtime.tss",
+		"tailwind.config.js"
 	],
 	"exclude": ["node_modules"]
 }

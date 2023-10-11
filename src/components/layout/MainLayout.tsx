@@ -1,11 +1,16 @@
 "use client";
 
 import type { ReactNode } from "react";
-// import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { NextUIProvider } from "@nextui-org/react";
+import { ThemeProvider as NextThemesProvider } from "next-themes";
 
 const MainLayout = ({ children }: { children: ReactNode }) => {
-	// const [parent] = useAutoAnimate();
-
-	return <main className="h-full flex flex-col max-h-max max-w-full flex-1 overflow-hidden">{children}</main>;
+	return (
+		<NextUIProvider className="flex min-h-screen flex-col">
+			<NextThemesProvider attribute="class" defaultTheme="dark">
+				{children}
+			</NextThemesProvider>
+		</NextUIProvider>
+	);
 };
 export { MainLayout };

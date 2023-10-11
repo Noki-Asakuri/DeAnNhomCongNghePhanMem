@@ -1,0 +1,176 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+    provider        = "prisma-client-js"
+    previewFeatures = ["fullTextSearch", "fullTextIndex", "driverAdapters"]
+}
+
+datasource db {
+    provider     = "mysql"
+    url          = env("DATABASE_URL")
+    relationMode = "prisma"
+}
+
+enum TrangThai {
+    UNAPPROVE
+    APPROVED
+}
+
+enum GioiTinh {
+    Male
+    Famale
+}
+
+enum Role {
+    KhachHang
+    NhanVien
+    TongBienTap
+    QuanTriVien
+}
+
+model BanTin {
+    MaBanTin String @id @default(uuid()) @db.VarChar(36)
+
+    TenBanTin     String @db.VarChar(255)
+    NoiDungTomTat String @db.VarChar(255)
+    NoiDung       String @db.Text
+
+    PreviewImage String    @db.Text
+    TrangThai    TrangThai @default(UNAPPROVE)
+    NgayDang     DateTime  @default(now()) @db.Timestamp(3)
+
+    luoiXem    Int @default(0) @db.Int
+    luoiChiaSe Int @default(0) @db.Int
+
+    MaDanhMuc String  @db.VarChar(36)
+    DanhMuc   DanhMuc @relation(fields: [MaDanhMuc], references: [MaDanhMuc])
+
+    MaNhanVien String   @db.VarChar(36)
+    NhanVien   NhanVien @relation(fields: [MaNhanVien], references: [MaNhanVien])
+
+    DanhGia        DanhGia[]
+    BanTinDaLuu    BanTinDaLuu[]
+    BanTinYeuThich BanTinYeuThich[]
+
+    @@index([MaDanhMuc, MaNhanVien])
+}
+
+model BanTinDaLuu {
+    MaBanTin String @db.VarChar(36)
+    BanTin   BanTin @relation(fields: [MaBanTin], references: [MaBanTin])
+
+    MaNguoiDung String    @db.VarChar(36)
+    NguoiDung   NguoiDung @relation(fields: [MaNguoiDung], references: [MaNguoiDung])
+
+    @@id([MaBanTin, MaNguoiDung])
+    @@index([MaBanTin, MaNguoiDung])
+}
+
+model BanTinYeuThich {
+    MaBanTin String @db.VarChar(36)
+    BanTin   BanTin @relation(fields: [MaBanTin], references: [MaBanTin])
+
+    MaNguoiDung String    @db.VarChar(36)
+    NguoiDung   NguoiDung @relation(fields: [MaNguoiDung], references: [MaNguoiDung])
+
+    @@id([MaBanTin, MaNguoiDung])
+    @@index([MaBanTin, MaNguoiDung])
+}
+
+model DanhMuc {
+    MaDanhMuc  String @id @default(uuid()) @db.VarChar(36)
+    TenDanhMuc String @db.VarChar(255)
+
+    BanTin BanTin[]
+}
+
+model TaiKhoan {
+    MaTaiKhoan String @id @db.VarChar(32)
+
+    HoTen      String    @db.VarChar(255)
+    Email      String    @unique @db.VarChar(255)
+    NgayTaoTK  DateTime  @default(now()) @db.Timestamp(3)
+    GioiTinh   GioiTinh  @default(Male)
+    AnhDaiDien String    @db.VarChar(255)
+    NgaySinh   DateTime? @db.DateTime()
+    SoDT       String?   @db.VarChar(11)
+    DiaChi     String?   @db.VarChar(255)
+
+    VaiTro Role @default(KhachHang)
+
+    NguoiDung NguoiDung?
+    NhanVien  NhanVien?
+}
+
+model NhanVien {
+    MaNhanVien String @id @db.VarChar(32)
+
+    MaTaiKhoan String   @unique
+    TaiKhoan   TaiKhoan @relation(fields: [MaTaiKhoan], references: [MaTaiKhoan])
+
+    BanTin BanTin[]
+
+    @@index([MaNhanVien])
+}
+
+model NguoiDung {
+    MaNguoiDung String @id @db.VarChar(32)
+
+    DangKyDatBao Boolean @default(false)
+
+    DanhGia        DanhGia[]
+    YeuCau         YeuCau[]
+    BanTinDaLuu    BanTinDaLuu[]
+    BanTinYeuThich BanTinYeuThich[]
+
+    MaTaiKhoan String   @unique
+    TaiKhoan   TaiKhoan @relation(fields: [MaTaiKhoan], references: [MaTaiKhoan])
+
+    @@index([MaNguoiDung])
+}
+
+model DanhGia {
+    MaDanhGia String @id @default(uuid()) @db.VarChar(36)
+
+    MaTraLoi  String?   @db.VarChar(36)
+    TraLoiCho DanhGia?  @relation("TraLoiCho", fields: [MaTraLoi], references: [MaDanhGia], onDelete: NoAction, onUpdate: NoAction)
+    TraLoiBoi DanhGia[] @relation("TraLoiCho")
+
+    NoiDung     String   @db.Text
+    NgayDanhGia DateTime @default(now()) @db.Timestamp(3)
+
+    MaBanTin String
+    BanTin   BanTin @relation(fields: [MaBanTin], references: [MaBanTin])
+
+    MaNguoiDung String
+    NguoiDung   NguoiDung @relation(fields: [MaNguoiDung], references: [MaNguoiDung])
+
+    @@index([MaNguoiDung, MaBanTin, MaTraLoi])
+}
+
+model YeuCau {
+    MaYeuCau String @id @default(uuid()) @db.VarChar(36)
+
+    ChuDe     String @db.VarChar(30)
+    TrangThai String @db.VarChar(20)
+
+    MaNguoiDung String    @db.VarChar(36)
+    NguoiDung   NguoiDung @relation(fields: [MaNguoiDung], references: [MaNguoiDung])
+
+    MaChuyenGia String    @db.VarChar(36)
+    ChuyenGia   ChuyenGia @relation(fields: [MaChuyenGia], references: [MaChuyenGia])
+
+    @@index([MaNguoiDung, MaChuyenGia])
+}
+
+model ChuyenGia {
+    MaChuyenGia  String   @id @default(uuid()) @db.VarChar(36)
+    TenChuyenGia String   @db.VarChar(100)
+    GioiTinh     GioiTinh
+
+    HocVi     String @db.VarChar(20)
+    ChuyenMon String @db.VarChar(50)
+
+    YeuCau YeuCau[]
+}

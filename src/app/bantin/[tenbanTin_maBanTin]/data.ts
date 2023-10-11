@@ -1,29 +1,23 @@
 import { cache } from "react";
-import { isNull, not } from "drizzle-orm";
 
-import { db } from "@/server/db/client";
+import { prisma } from "@/server/db/prisma";
 import { convertClerkUserIdToUUID } from "@/utils/clerk";
 import { decodeBanTinPath } from "@/utils/path";
 
 export const layBanTin = cache(async (tenbanTin_maBanTin: string) => {
 	const [, maBanTin] = decodeBanTinPath(tenbanTin_maBanTin);
 
-	const banTin = await db.query.BanTinTable.findFirst({
-		where: (banTin, { eq }) => eq(banTin.maBanTin, maBanTin),
-		with: {
-			danhGia: {
-				where: (danhGia) => isNull(danhGia.maTraLoi),
-				orderBy: (danhGia, { desc }) => desc(danhGia.ngayDanhGia),
-				with: {
-					nguoiDung: true,
-					traLoiBoi: {
-						orderBy: (traLoi, { desc }) => desc(traLoi.ngayDanhGia),
-						with: { nguoiDung: true },
-					},
+	const banTin = await prisma.banTin.findFirst({
+		where: { MaBanTin: maBanTin },
+		include: {
+			DanhGia: {
+				select: {
+					NguoiDung: true,
+					TraLoiBoi: { orderBy: { NgayDanhGia: "desc" }, select: { NguoiDung: true } },
 				},
 			},
-			danhMuc: true,
-			nhanvien: true,
+			DanhMuc: true,
+			NhanVien: true,
 		},
 	});
 
@@ -33,11 +27,11 @@ export const layBanTin = cache(async (tenbanTin_maBanTin: string) => {
 export const layBanTinXemNhieu = async (tenbanTin_maBanTin: string) => {
 	const [, maBanTin] = decodeBanTinPath(tenbanTin_maBanTin);
 
-	const banTinXemNhieu = await db.query.BanTinTable.findMany({
-		where: (banTin, { eq }) => not(eq(banTin.maBanTin, maBanTin)),
-		with: { danhGia: true },
-		limit: 3,
-		orderBy: (banTin, { desc }) => desc(banTin.luotXem),
+	const banTinXemNhieu = await prisma.banTin.findMany({
+		where: { NOT: { MaBanTin: maBanTin } },
+		include: { DanhGia: true },
+		orderBy: { luoiXem: "desc" },
+		take: 3,
 	});
 
 	return banTinXemNhieu;
@@ -47,11 +41,11 @@ export const checkDaLuuBanTin = async (tenbanTin_maBanTin: string, maNguoiDung?:
 	if (!maNguoiDung) return false;
 	const [, maBanTin] = decodeBanTinPath(tenbanTin_maBanTin);
 
-	const daLuu = await db.query.BanTinDaLuuTable.findFirst({
-		where: (table, { eq, and }) => and(eq(table.maBanTin, maBanTin), eq(table.maNguoiDung, convertClerkUserIdToUUID(maNguoiDung))),
+	const data = await prisma.banTinDaLuu.findFirst({
+		where: {
+			MaNguoiDung: convertClerkUserIdToUUID(maNguoiDung),
+			MaBanTin: maBanTin,
+		},
 	});
-
-	console.log(!!daLuu);
-
-	return !!daLuu;
+	return data !== null;
 };

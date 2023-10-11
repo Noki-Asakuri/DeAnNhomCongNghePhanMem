@@ -1,48 +1,53 @@
 "use client";
 
-import Image from "next/image";
-import Link from "next/link";
-
-import type { InferModel } from "drizzle-orm";
-
-import type { BanTinTable } from "@/server/db/schema/banTin";
-import type { DanhMucTable } from "@/server/db/schema/danhMuc";
-
 import { encodeBanTinPath } from "@/utils/path";
-import { Badge } from "@ui/badge";
+
+import { Card, CardBody, Chip, Divider, Image, Link } from "@nextui-org/react";
+import NextLink from "next/link";
 
 import { ChiaSeDropdown } from "../chiaSeDropdown";
+import type { getRandomBanTin } from "./data";
 
-type ParamsType = { banTin: InferModel<typeof BanTinTable, "select"> & { danhMuc: InferModel<typeof DanhMucTable, "select"> | null } };
+type ParamsType = { banTin: Awaited<ReturnType<typeof getRandomBanTin>>[number] };
 
-export const BanTinMoi = ({ banTin, host }: ParamsType & { host: string }) => {
+export const BanTinMoi = ({ banTin, host, isLast }: ParamsType & { host: string; isLast: boolean }) => {
 	const banTinPath = encodeBanTinPath(banTin);
 
 	return (
-		<div className="grid grid-cols-[1fr_minmax(auto,20%)] gap-2">
-			<Link href={banTinPath} className="col-span-2 h-full overflow-hidden">
-				<div className="grid grid-cols-[1fr_minmax(auto,20%)] gap-5">
-					<div className="place-self-center">
-						<h4 className="text-xl font-bold">{banTin.tenBanTin}</h4>
-						<p className="line-clamp-2">{banTin.noiDungTomTat}</p>
-					</div>
+		<>
+			<Card isBlurred isPressable as={"div"} className="bg-background/60 dark:bg-default-100/50">
+				<CardBody>
+					<div className="grid grid-cols-[75%_max-content] grid-rows-[1fr_max-content] place-content-between gap-y-2">
+						<NextLink href={banTinPath} className="flex flex-col gap-2">
+							<h2 className="flex h-14 items-center text-xl font-semibold">{banTin.TenBanTin}</h2>
+							<p className="line-clamp-2">{banTin.NoiDungTomTat}</p>
+						</NextLink>
 
-					<div className="relative flex aspect-square h-full w-full items-center justify-center">
-						<div className="h-max w-full">
-							<Image fill alt="" src={banTin.hinhNho} className="!relative h-max rounded-lg object-contain object-center" />
+						<Link href={banTinPath} className="row-span-2 self-center">
+							<Image
+								classNames={{
+									wrapper: "aspect-square w-32",
+									img: "w-full h-full object-center object-cover",
+								}}
+								alt={banTin.NoiDungTomTat}
+								src={banTin.PreviewImage}
+							/>
+						</Link>
+
+						<div className="flex items-center justify-between">
+							<Chip>
+								<Link underline="hover" as={NextLink} href={`/danhMuc/${banTin.DanhMuc.TenDanhMuc}`}>
+									{banTin.DanhMuc.TenDanhMuc}
+								</Link>
+							</Chip>
+
+							<ChiaSeDropdown duongDanBanTin={banTinPath} host={host} tenBanTin={banTin.TenBanTin} />
 						</div>
 					</div>
-				</div>
-			</Link>
-			<div className="flex items-center justify-between">
-				<Badge variant="default" className="w-max">
-					{banTin.danhMuc?.tenDanhMuc}
-				</Badge>
+				</CardBody>
+			</Card>
 
-				<div className="">
-					<ChiaSeDropdown host={host} tenBanTin={banTin.tenBanTin} duongDanBanTin={banTinPath} />
-				</div>
-			</div>
-		</div>
+			{!isLast && <Divider orientation="horizontal" />}
+		</>
 	);
 };

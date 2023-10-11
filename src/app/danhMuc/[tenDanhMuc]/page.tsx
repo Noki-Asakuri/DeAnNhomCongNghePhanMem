@@ -1,5 +1,5 @@
-import { Trang } from "@/components/Pagination";
-import { db } from "@/server/db/client";
+import { Pagination } from "@/components/common/Pagination";
+import { prisma } from "@/server/db/prisma";
 import { encodeBanTinPath } from "@/utils/path";
 import { MessagesSquare } from "lucide-react";
 
@@ -12,19 +12,19 @@ import { notFound } from "next/navigation";
 export const revalidate = 600;
 
 const layData = async (tenDanhMuc: string) => {
-	return db.query.DanhMucTable.findFirst({
-		where: (table, { eq }) => eq(table.tenDanhMuc, decodeURIComponent(tenDanhMuc)),
-		with: { banTin: true },
+	return prisma.danhMuc.findFirst({
+		where: { TenDanhMuc: decodeURIComponent(tenDanhMuc) },
+		include: { BanTin: true },
 	});
 };
 
 const layDanhSachBanTin = async (maDanhMuc: string, page: number) => {
-	return db.query.BanTinTable.findMany({
-		where: (table, { eq }) => eq(table.maDanhMuc, maDanhMuc),
-		limit: 8,
-		offset: page * 8,
-		with: { danhGia: true },
-		orderBy: (table, { desc }) => desc(table.ngayDang),
+	return prisma.banTin.findMany({
+		where: { MaDanhMuc: maDanhMuc },
+		take: 8,
+		skip: (page - 1) * 8,
+		include: { DanhGia: true },
+		orderBy: { NgayDang: "desc" },
 	});
 };
 
@@ -32,7 +32,7 @@ export const generateMetadata = async ({ params: { tenDanhMuc } }: { params: { t
 	const danhMuc = await layData(tenDanhMuc);
 	if (!danhMuc) return { title: "Danh mục Không Tồn Tại" };
 
-	return { title: danhMuc.tenDanhMuc + " - Bản Tin 24H - Nguồn Tin Tức Đa Dạng và Chính Xác" };
+	return { title: danhMuc.TenDanhMuc + " - Bản Tin 24H - Nguồn Tin Tức Đa Dạng và Chính Xác" };
 };
 
 function getTotalPages(totalItems: number, perPage: number) {
@@ -49,36 +49,38 @@ export default async function DanhMuc({
 	const danhMuc = await layData(tenDanhMuc);
 	if (!danhMuc) notFound();
 
-	const totalPages = getTotalPages(danhMuc.banTin.length, 8) - 1;
-	const banTin = await layDanhSachBanTin(danhMuc.maDanhMuc, parseInt(page || "1"));
+	const pageNum = parseInt(page || "1");
+
+	const totalPages = getTotalPages(danhMuc.BanTin.length, 8) - 1;
+	const banTin = await layDanhSachBanTin(danhMuc.MaDanhMuc, pageNum);
 
 	return (
-		<div className="container mx-auto flex flex-col gap-4 py-24">
-			<h3 className="text-2xl font-bold">{danhMuc.tenDanhMuc}</h3>
+		<div className="container mx-auto flex max-w-6xl flex-col gap-4 py-4">
+			<h3 className="text-2xl font-bold">{danhMuc.TenDanhMuc}</h3>
 
-			<div className="flex w-2/3 flex-col gap-y-5">
+			<div className="flex w-2/3 flex-col items-center justify-center gap-y-5">
 				{banTin &&
 					banTin.map((banTin) => {
 						const banTinPath = encodeBanTinPath(banTin);
 
 						return (
-							<div key={`${banTin.maBanTin}-${banTin.maDanhMuc}`} className="grid grid-cols-[240px_auto] gap-4">
+							<div key={`${banTin.MaBanTin}-${banTin.MaDanhMuc}`} className="grid grid-cols-[240px_auto] gap-4">
 								<div className="relative aspect-video w-full overflow-hidden rounded-lg">
 									<Link href={banTinPath}>
-										<Image src={banTin.hinhNho} alt={banTin.tenBanTin} fill />
+										<Image src={banTin.PreviewImage} alt={banTin.TenBanTin} fill />
 									</Link>
 								</div>
 
 								<div>
 									<h4 className="text-lg font-bold">
-										<Link href={banTinPath}>{banTin.tenBanTin}</Link>
+										<Link href={banTinPath}>{banTin.TenBanTin}</Link>
 									</h4>
 									<p>
-										<Link href={banTinPath}>{banTin.noiDungTomTat}</Link>
+										<Link href={banTinPath}>{banTin.NoiDungTomTat}</Link>
 
 										<div className="inline-flex w-max items-center justify-center gap-2 pl-2">
 											<MessagesSquare size={16} />
-											<span className="text-blue-500/50">{banTin.danhGia.length}</span>
+											<span className="text-blue-500/50">{banTin.DanhGia.length}</span>
 										</div>
 									</p>
 								</div>
@@ -87,9 +89,7 @@ export default async function DanhMuc({
 					})}
 			</div>
 
-			<div className="flex items-center justify-center">
-				<Trang totalPages={totalPages} currentPage={parseInt(page || "0")} />
-			</div>
+			<Pagination page={pageNum} total={totalPages} url={`/danhMuc/${tenDanhMuc}`} />
 		</div>
 	);
 }

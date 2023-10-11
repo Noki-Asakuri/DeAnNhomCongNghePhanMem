@@ -2,8 +2,8 @@ import "@/styles/globals.css";
 
 import React from "react";
 
+import { viVN } from "@clerk/localizations";
 import { ClerkProvider, currentUser } from "@clerk/nextjs";
-import { dark } from "@clerk/themes";
 
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
@@ -27,17 +27,17 @@ export const metadata: Metadata = {
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
 	const user = await currentUser();
-	const isDarkMode = true;
 
 	return (
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-		<ClerkProvider appearance={{ baseTheme: isDarkMode ? dark : undefined }}>
-			<html lang="en" className={isDarkMode ? "dark" : undefined}>
+		<ClerkProvider localization={viVN}>
+			<html lang="en" className="dark">
 				<head />
-				<body className={`${inter.className} flex min-h-screen flex-col dark:bg-neutral-900`}>
-					<MainNavbar user={user} />
-					<MainLayout>{children}</MainLayout>
-					<BottomFooter />
+				<body className={inter.className}>
+					<MainLayout>
+						<MainNavbar userJSON={user ? JSON.stringify(user) : null} />
+						<main className="flex h-full max-h-max max-w-full flex-1 flex-col overflow-hidden">{children}</main>
+						<BottomFooter />
+					</MainLayout>
 
 					<Toaster />
 				</body>

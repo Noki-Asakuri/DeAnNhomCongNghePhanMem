@@ -2,65 +2,120 @@
 
 import type { User } from "@clerk/clerk-sdk-node";
 
+import { SignOutButton } from "@clerk/nextjs";
+import {
+	Avatar,
+	Badge,
+	Button,
+	Divider,
+	Dropdown,
+	DropdownItem,
+	DropdownMenu,
+	DropdownSection,
+	DropdownTrigger,
+	Navbar,
+	NavbarBrand,
+	NavbarContent,
+} from "@nextui-org/react";
+
+import { Bell, BookMarked, History, LogOut, User2, UserCog } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 
-import { Bell, TimerIcon, UserCircle } from "lucide-react";
-
-import { Separator } from "@ui/separator";
+import { ThemeSwitcher } from "../theme-switcher";
 import { RealTime } from "./Realtime";
-import { UserDropdown } from "./userDropdown";
 import { SearchBar } from "./SearchBar";
 
-const MainNavbar = ({ user }: { user: User | null }) => {
-	const currentPath = usePathname();
+const MainNavbar = ({ userJSON }: { userJSON: string | null }) => {
+	const user = userJSON ? (JSON.parse(userJSON) as User) : null;
 
 	return (
-		<nav className="fixed top-0 z-50 w-full backdrop-blur-md backdrop-saturate-150">
-			<section className="border-b-[1px] border-black/50 py-5">
-				<main className="container mx-auto flex items-center justify-between px-3">
-					<div className="flex h-7 items-center space-x-4">
-						<Link href="/" className="w-max text-2xl">
-							<h2 className="w-max font-bold">Bản tin 24H</h2>
-						</Link>
+		<Navbar shouldHideOnScroll isBordered classNames={{ wrapper: "max-w-6xl" }}>
+			<NavbarBrand className="flex h-8 items-center space-x-4 text-small">
+				<h1 className="text-2xl font-bold text-inherit">
+					<Link href="/">Bản Tin 24H</Link>
+				</h1>
+				<Divider orientation="vertical" />
+				<RealTime />
+			</NavbarBrand>
 
-						<Separator orientation="vertical" className="bg-black dark:bg-white" />
+			<NavbarContent as="div" className="items-center" justify="end">
+				<SearchBar />
 
-						<RealTime />
-					</div>
+				<ThemeSwitcher />
 
-					<div className="flex h-7 w-full items-center justify-end space-x-4 text-sm">
-						<Link className="flex items-center justify-center gap-2" href="/tin-tuc-24h" title="Tin tức mới nhất trong 24h qua">
-							<TimerIcon />
-							Mới nhất
-						</Link>
+				{user && (
+					<Badge isOneChar color="danger" shape="circle" placement="top-right">
+						<Button radius="full" isIconOnly startContent={<Bell size={20} />} />
+					</Badge>
+				)}
 
-						<Separator orientation="vertical" className="bg-black dark:bg-white" />
+				<Dropdown placement="bottom-end">
+					<DropdownTrigger>
+						<Avatar
+							isBordered
+							as="button"
+							className="transition-transform"
+							name={user ? user.username! : undefined}
+							src={user ? user.imageUrl : undefined}
+						/>
+					</DropdownTrigger>
 
-						<SearchBar />
+					{user && (
+						<DropdownMenu aria-label="Profile Actions" variant="flat">
+							<DropdownSection showDivider>
+								<DropdownItem key="profile" className="h-14 gap-2">
+									<p className="font-semibold">Đăng nhập bằng</p>
+									<p className="font-semibold">{user.emailAddresses[0]?.emailAddress}</p>
+								</DropdownItem>
+							</DropdownSection>
 
-						{user ? (
-							<UserDropdown user={user} />
-						) : (
-							<Link
-								href={{
-									pathname: "/auth/dang-nhap",
-									query: { redirect_url: currentPath },
-								}}
-								className="flex items-center justify-center gap-2"
-							>
-								<UserCircle size={20} />
-								<span>Đăng Nhập</span>
-							</Link>
-						)}
+							<DropdownSection title="Cài đặt" showDivider>
+								<DropdownItem key="config" startContent={<User2 size={16} />}>
+									<Link className="block w-full text-left" href="/auth/nguoi-dung/thong-tin-tai-khoan">
+										Cài đặt tài khoản
+									</Link>
+								</DropdownItem>
 
-						<button>
-							<Bell size={20} />
-						</button>
-					</div>
-				</main>
-			</section>
-		</nav>
+								<DropdownItem key="config" startContent={<UserCog size={16} />}>
+									<Link className="block w-full text-left" href="/auth/nguoi-dung/thong-tin-nguoi-dung">
+										Cài đặt người dùng
+									</Link>
+								</DropdownItem>
+
+								<DropdownItem key="bookmark" startContent={<BookMarked size={16} />}>
+									<Link className="block w-full text-left" href="/auth/nguoi-dung/tin-da-luu">
+										Tin Đã Lưu
+									</Link>
+								</DropdownItem>
+
+								<DropdownItem key="history" startContent={<History size={16} />}>
+									<Link className="block w-full text-left" href="/auth/nguoi-dung/tin-da-xem">
+										Tin Đã Xem
+									</Link>
+								</DropdownItem>
+							</DropdownSection>
+							<DropdownSection title="Nguy hiểm">
+								<DropdownItem key="logout" color="danger" startContent={<LogOut size={16} />}>
+									<SignOutButton>
+										<button className="w-full text-left">Đăng Xuất</button>
+									</SignOutButton>
+								</DropdownItem>
+							</DropdownSection>
+						</DropdownMenu>
+					)}
+
+					{!user && (
+						<DropdownMenu aria-label="Login Actions" variant="flat">
+							<DropdownItem key="login" color="primary">
+								<Link href="/auth/dang-nhap" className="block w-full">
+									Đăng nhập
+								</Link>
+							</DropdownItem>
+						</DropdownMenu>
+					)}
+				</Dropdown>
+			</NavbarContent>
+		</Navbar>
 	);
 };
 
