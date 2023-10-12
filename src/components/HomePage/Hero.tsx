@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Typewriter from "typewriter-effect";
+
 import { Button } from "@nextui-org/react";
 
 const HeroMain = () => {

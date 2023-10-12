@@ -9,6 +9,7 @@ import ReactMarkdown from "react-markdown";
 
 // import { DanhDauDaXemBanTin } from "@/components/ban-tin/DanhDauDaXemBanTin";
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { encodeBanTinPath } from "@/utils/path";
 
 import { currentUser } from "@clerk/nextjs";
@@ -31,12 +32,15 @@ export const generateMetadata = async ({ params: { tenbanTin_maBanTin } }: Param
 
 export default async function BanTinPage({ params: { tenbanTin_maBanTin } }: Params) {
 	const user = await currentUser();
+
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	const [banTin, banTinXemNhieu, isLuuBanTin] = await Promise.all([
 		layBanTin(tenbanTin_maBanTin),
 		layBanTinXemNhieu(tenbanTin_maBanTin),
 		checkDaLuuBanTin(tenbanTin_maBanTin, user?.id),
 	]);
 
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	const host = headers().get("host");
 
 	const dateFormatter = new Intl.DateTimeFormat("vi", { dateStyle: "full" });
@@ -82,7 +86,7 @@ export default async function BanTinPage({ params: { tenbanTin_maBanTin } }: Par
 						</div>
 
 						<div className="flex items-center justify-end pr-4 pt-5">
-							<span className="text-xl font-bold">{banTin.NhanVien.TenNhanVien}</span>
+							<span className="text-xl font-bold">{banTin.NhanVien.TaiKhoan.HoTen}</span>
 						</div>
 
 						{/* <ThanhCongCu banTin={banTin} host={host as string} user={user} daLuu={isLuuBanTin} />

@@ -1,35 +1,22 @@
 "use server";
 
-import { db } from "@/server/db/client";
-import { BanTinDaXemTable } from "@/server/db/schema/banTinDaXem";
+import { prisma } from "@/server/db/prisma";
 import { convertClerkUserIdToUUID } from "@/utils/clerk";
 
-import { eq, type InferModel } from "drizzle-orm";
-import { BanTinTable } from "../db/schema/banTin";
-
-export const danhDauDaXemBanTin = async ({
-	maBanTin,
-	maNguoiDung,
-	luoiXem,
-}: {
+type XemBanTinParams = {
 	maBanTin: string;
 	maNguoiDung?: string;
-	luoiXem: number;
-}) => {
+};
+
+export const danhDauDaXemBanTin = async ({ maBanTin, maNguoiDung }: XemBanTinParams) => {
 	if (!maNguoiDung) throw new Error("Chưa Đăng Nhập");
 
-	const banTin: InferModel<typeof BanTinDaXemTable, "insert"> = {
-		maBanTin,
-		maNguoiDung: convertClerkUserIdToUUID(maNguoiDung),
-	};
+	await prisma.banTinDaLuu.create({
+		data: { MaBanTin: maBanTin, MaNguoiDung: convertClerkUserIdToUUID(maNguoiDung) },
+	});
 
-	await db
-		.insert(BanTinDaXemTable)
-		.values(banTin)
-		.onDuplicateKeyUpdate({ set: { maBanTin: banTin.maBanTin, maNguoiDung: banTin.maNguoiDung } });
-
-	await db
-		.update(BanTinTable)
-		.set({ luotXem: luoiXem + 1 })
-		.where(eq(BanTinTable.maBanTin, maBanTin));
+	await prisma.banTin.update({
+		data: { luoiXem: { increment: 1 } },
+		where: { MaBanTin: maBanTin },
+	});
 };

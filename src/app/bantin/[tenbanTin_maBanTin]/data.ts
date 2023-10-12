@@ -17,7 +17,7 @@ export const layBanTin = cache(async (tenbanTin_maBanTin: string) => {
 				},
 			},
 			DanhMuc: true,
-			NhanVien: true,
+			NhanVien: { include: { TaiKhoan: true } },
 		},
 	});
 

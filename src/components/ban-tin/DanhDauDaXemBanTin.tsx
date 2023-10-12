@@ -3,8 +3,6 @@
 import type { layBanTin } from "@/app/bantin/[tenbanTin_maBanTin]/data";
 import { danhDauDaXemBanTin } from "@/server/action/xemBanTin";
 
-import { convertClerkUserIdToUUID } from "@/utils/clerk";
-
 import type { User } from "@clerk/clerk-sdk-node";
 import { useEffect, useRef } from "react";
 
@@ -23,13 +21,7 @@ export function DanhDauDaXemBanTin({ banTin, user }: { banTin: Awaited<ReturnTyp
 		<form
 			hidden
 			// eslint-disable-next-line @typescript-eslint/no-misused-promises
-			action={async () => {
-				await danhDauDaXemBanTin({
-					maBanTin: banTin!.maBanTin,
-					maNguoiDung: convertClerkUserIdToUUID(user.id),
-					luoiXem: banTin!.luotXem || 0,
-				});
-			}}
+			action={async () => await danhDauDaXemBanTin({ maBanTin: banTin!.MaBanTin, maNguoiDung: user.id })}
 		>
 			<input ref={ref} type="submit" hidden />
 		</form>

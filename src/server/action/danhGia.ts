@@ -1,62 +1,52 @@
 "use server";
 
-import { db } from "@/server/db/client";
-import { DanhGiaTable } from "@/server/db/schema/danhGia";
+import { prisma } from "@/server/db/prisma";
 import { convertClerkUserIdToUUID } from "@/utils/clerk";
 
-import type { InferModel } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
-import { v4 } from "uuid";
 
-export const danhGiaBanTin = async ({
-	data,
-	maBanTin,
-	maNguoiDung,
-	url,
-}: {
+type DanhGiaParams = {
 	data: FormData;
 	maBanTin: string;
 	maNguoiDung?: string;
 	url: string;
-}) => {
+};
+
+export const danhGiaBanTin = async ({ data, maBanTin, maNguoiDung, url }: DanhGiaParams) => {
 	if (!maNguoiDung) throw new Error("Chưa Đăng Nhập");
 
 	const noiDung = data.get("noiDungDanhGia")?.toString() || "";
-	const danhGia: InferModel<typeof DanhGiaTable, "insert"> = {
-		maDanhGia: v4(),
-		noiDung: noiDung?.toString(),
-		maBanTin,
-		maNguoiDung: convertClerkUserIdToUUID(maNguoiDung),
-	};
+	await prisma.danhGia.create({
+		data: {
+			NoiDung: noiDung,
+			MaBanTin: maBanTin,
+			MaNguoiDung: convertClerkUserIdToUUID(maNguoiDung),
+		},
+	});
 
-	await db.insert(DanhGiaTable).values(danhGia);
 	revalidatePath(url);
 };
 
-export const traLoiDanhGia = async ({
-	data,
-	maBanTin,
-	maNguoiDung,
-	maDanhGia,
-	url,
-}: {
+type TraLoiDanhGiaParams = {
 	data: FormData;
 	maBanTin: string;
 	maNguoiDung?: string;
 	maDanhGia: string;
 	url: string;
-}) => {
+};
+
+export const traLoiDanhGia = async ({ data, maBanTin, maNguoiDung, maDanhGia, url }: TraLoiDanhGiaParams) => {
 	if (!maNguoiDung) throw new Error("Chưa Đăng Nhập");
 
 	const noiDung = data.get("noiDungDanhGia")?.toString() || "";
-	const danhGia: InferModel<typeof DanhGiaTable, "insert"> = {
-		maNguoiDung: convertClerkUserIdToUUID(maNguoiDung),
-		noiDung: noiDung?.toString(),
-		maTraLoi: maDanhGia,
-		maDanhGia: v4(),
-		maBanTin,
-	};
+	await prisma.danhGia.create({
+		data: {
+			MaBanTin: maBanTin,
+			MaTraLoi: maDanhGia,
+			MaNguoiDung: convertClerkUserIdToUUID(maNguoiDung),
+			NoiDung: noiDung,
+		},
+	});
 
-	await db.insert(DanhGiaTable).values(danhGia);
 	revalidatePath(url);
 };

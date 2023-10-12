@@ -17,7 +17,7 @@ export default async function TimKiemPage({ searchParams: { query } }: { searchP
 
 			<div className="flex flex-col gap-y-5">
 				{ketQua.map((banTin) => {
-					return <></>;
+					return <div key={banTin.MaBanTin}>{banTin.TenBanTin}</div>;
 				})}
 			</div>
 		</div>

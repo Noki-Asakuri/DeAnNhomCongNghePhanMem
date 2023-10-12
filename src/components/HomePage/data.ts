@@ -21,7 +21,7 @@ export const getRandomBanTin = async () => {
 
 export const getDanhMuc = async () => {
 	const data = await prisma.danhMuc.findMany({
-		include: { BanTin: { take: 3, include: { DanhGia: true } } },
+		include: { BanTin: { take: 1, include: { DanhGia: true } } },
 		take: 3,
 	});
 

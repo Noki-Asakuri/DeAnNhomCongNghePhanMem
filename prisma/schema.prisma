@@ -80,7 +80,7 @@ model BanTinYeuThich {
 
 model DanhMuc {
     MaDanhMuc  String @id @default(uuid()) @db.VarChar(36)
-    TenDanhMuc String @db.VarChar(255)
+    TenDanhMuc String @unique @db.VarChar(255)
 
     BanTin BanTin[]
 }
