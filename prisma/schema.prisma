@@ -53,14 +53,14 @@ model BanTin {
     BanTinDaLuu    BanTinDaLuu[]
     BanTinYeuThich BanTinYeuThich[]
 
-    @@index([MaDanhMuc, MaNhanVien])
+    @@index([MaBanTin, MaDanhMuc, MaNhanVien])
 }
 
 model BanTinDaLuu {
     MaBanTin String @db.VarChar(36)
     BanTin   BanTin @relation(fields: [MaBanTin], references: [MaBanTin])
 
-    MaNguoiDung String    @db.VarChar(36)
+    MaNguoiDung String    @db.VarChar(32)
     NguoiDung   NguoiDung @relation(fields: [MaNguoiDung], references: [MaNguoiDung])
 
     @@id([MaBanTin, MaNguoiDung])
@@ -71,7 +71,7 @@ model BanTinYeuThich {
     MaBanTin String @db.VarChar(36)
     BanTin   BanTin @relation(fields: [MaBanTin], references: [MaBanTin])
 
-    MaNguoiDung String    @db.VarChar(36)
+    MaNguoiDung String    @db.VarChar(32)
     NguoiDung   NguoiDung @relation(fields: [MaNguoiDung], references: [MaNguoiDung])
 
     @@id([MaBanTin, MaNguoiDung])
@@ -127,6 +127,8 @@ model NguoiDung {
     MaTaiKhoan String   @unique
     TaiKhoan   TaiKhoan @relation(fields: [MaTaiKhoan], references: [MaTaiKhoan])
 
+    DanhGiaLikes DanhGiaLikes[]
+
     @@index([MaNguoiDung])
 }
 
@@ -140,13 +142,26 @@ model DanhGia {
     NoiDung     String   @db.Text
     NgayDanhGia DateTime @default(now()) @db.Timestamp(3)
 
-    MaBanTin String
+    MaBanTin String @db.VarChar(36)
     BanTin   BanTin @relation(fields: [MaBanTin], references: [MaBanTin])
 
-    MaNguoiDung String
+    MaNguoiDung String    @db.VarChar(32)
     NguoiDung   NguoiDung @relation(fields: [MaNguoiDung], references: [MaNguoiDung])
 
+    DanhGiaLikes DanhGiaLikes[]
+
     @@index([MaNguoiDung, MaBanTin, MaTraLoi])
+}
+
+model DanhGiaLikes {
+    MaDanhGia   String @db.VarChar(36)
+    MaNguoiDung String @db.VarChar(32)
+
+    DanhGia   DanhGia   @relation(fields: [MaDanhGia], references: [MaDanhGia], onDelete: Cascade, onUpdate: Cascade)
+    NguoiDung NguoiDung @relation(fields: [MaNguoiDung], references: [MaNguoiDung], onDelete: Cascade, onUpdate: Cascade)
+
+    @@id([MaDanhGia, MaNguoiDung])
+    @@index([MaNguoiDung, MaDanhGia])
 }
 
 model YeuCau {
@@ -155,7 +170,7 @@ model YeuCau {
     ChuDe     String @db.VarChar(30)
     TrangThai String @db.VarChar(20)
 
-    MaNguoiDung String    @db.VarChar(36)
+    MaNguoiDung String    @db.VarChar(32)
     NguoiDung   NguoiDung @relation(fields: [MaNguoiDung], references: [MaNguoiDung])
 
     MaChuyenGia String    @db.VarChar(36)
