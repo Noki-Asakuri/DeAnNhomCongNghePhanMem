@@ -4,7 +4,7 @@ import { currentUser } from "@clerk/nextjs";
 import { History } from "lucide-react";
 
 const layBanTinDaXem = async (maNguoiDung: string) => {
-	return await prisma.banTinDaLuu.findMany({
+	return await prisma.banTinDaDoc.findMany({
 		where: { MaNguoiDung: maNguoiDung },
 	});
 };
@@ -15,7 +15,7 @@ export default async function UserProfilePage() {
 
 	return (
 		<BanTin danhSachBanTin={data}>
-			<History size={30} /> Bản Tin Đã Xem
+			<History size={30} /> Lịch sử xem
 		</BanTin>
 	);
 }

@@ -1,8 +1,6 @@
 "use client";
 
-import type { User } from "@clerk/clerk-sdk-node";
-
-import { SignOutButton } from "@clerk/nextjs";
+import { useClerk, useUser } from "@clerk/nextjs";
 import {
 	Avatar,
 	Badge,
@@ -19,14 +17,19 @@ import {
 } from "@nextui-org/react";
 
 import { Bell, BookMarked, History, LogOut, User2, UserCog } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 
 import { ThemeSwitcher } from "../theme-switcher";
 import { RealTime } from "./Realtime";
 import { SearchBar } from "./SearchBar";
 
-const MainNavbar = ({ userJSON }: { userJSON: string | null }) => {
-	const user = userJSON ? (JSON.parse(userJSON) as User) : null;
+const MainNavbar = () => {
+	const { isSignedIn, user, isLoaded } = useUser();
+	const { signOut } = useClerk();
+
+	const router = useRouter();
+	const pathname = usePathname();
 
 	return (
 		<Navbar shouldHideOnScroll isBordered classNames={{ wrapper: "max-w-6xl" }}>
@@ -43,7 +46,7 @@ const MainNavbar = ({ userJSON }: { userJSON: string | null }) => {
 
 				<ThemeSwitcher />
 
-				{user && (
+				{isLoaded && isSignedIn && (
 					<Badge isOneChar color="danger" shape="circle" placement="top-right">
 						<Button radius="full" isIconOnly startContent={<Bell size={20} />} />
 					</Badge>
@@ -60,7 +63,7 @@ const MainNavbar = ({ userJSON }: { userJSON: string | null }) => {
 						/>
 					</DropdownTrigger>
 
-					{user && (
+					{isLoaded && isSignedIn && (
 						<DropdownMenu aria-label="Profile Actions" variant="flat">
 							<DropdownSection showDivider>
 								<DropdownItem key="profile" className="h-14 gap-2">
@@ -83,31 +86,38 @@ const MainNavbar = ({ userJSON }: { userJSON: string | null }) => {
 								</DropdownItem>
 
 								<DropdownItem key="bookmark" startContent={<BookMarked size={16} />}>
-									<Link className="block w-full text-left" href="/auth/nguoi-dung/tin-da-luu">
-										Tin Đã Lưu
+									<Link className="block w-full text-left" href="/auth/nguoi-dung/tin-yeu-thich">
+										Tin yêu thích
 									</Link>
 								</DropdownItem>
 
 								<DropdownItem key="history" startContent={<History size={16} />}>
-									<Link className="block w-full text-left" href="/auth/nguoi-dung/tin-da-xem">
-										Tin Đã Xem
+									<Link className="block w-full text-left" href="/auth/nguoi-dung/lich-su">
+										Lịch sử xem
 									</Link>
 								</DropdownItem>
 							</DropdownSection>
 							<DropdownSection title="Nguy hiểm">
 								<DropdownItem key="logout" color="danger" startContent={<LogOut size={16} />}>
-									<SignOutButton>
-										<button className="w-full text-left">Đăng Xuất</button>
-									</SignOutButton>
+									<button
+										className="w-full text-left"
+										onClick={() => {
+											signOut()
+												.then(() => router.refresh())
+												.catch(() => router.refresh());
+										}}
+									>
+										Đăng Xuất
+									</button>
 								</DropdownItem>
 							</DropdownSection>
 						</DropdownMenu>
 					)}
 
-					{!user && (
+					{(!isLoaded || !isSignedIn) && (
 						<DropdownMenu aria-label="Login Actions" variant="flat">
 							<DropdownItem key="login" color="primary">
-								<Link href="/auth/dang-nhap" className="block w-full">
+								<Link href={{ pathname: "/auth/dang-nhap", query: { redirect_url: pathname } }} className="block w-full">
 									Đăng nhập
 								</Link>
 							</DropdownItem>

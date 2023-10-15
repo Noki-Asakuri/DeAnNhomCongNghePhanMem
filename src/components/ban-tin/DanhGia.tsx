@@ -1,239 +1,235 @@
-// "use client";
+"use client";
 
-// import { danhGiaBanTin, traLoiDanhGia } from "@/server/action/danhGia";
-// import { dayjs } from "@/utils/dayjs";
+import type { layBanTin } from "@/app/bantin/[tenbanTin_maBanTin]/data";
+import type { RouterOutput } from "@/server/trpc/trpc";
+import type { User } from "@clerk/clerk-sdk-node";
 
-// import Image from "next/image";
-// import { usePathname } from "next/navigation";
+import { dayjs } from "@/utils/dayjs";
+import { trpc } from "@/utils/trpc/client";
 
-// import type { User } from "@clerk/clerk-sdk-node";
-// import { MessagesSquare, ThumbsUp } from "lucide-react";
-// import { useMemo, useRef, useState, type Dispatch, type SetStateAction } from "react";
-// import type { layBanTin } from "@/app/bantin/[tenbanTin_maBanTin]/data";
+import { Avatar, Button, Card, CardBody, Spacer, Spinner } from "@nextui-org/react";
+import { Flag, MessagesSquare, Reply, ThumbsUp } from "lucide-react";
+import toast from "react-hot-toast";
 
-// type ParamsType = {
-// 	banTin: Awaited<ReturnType<typeof layBanTin>>;
-// 	user: User | null;
-// };
+import { DanhGiaTextArea } from "./DanhGiaTextArea";
+import { Fragment, useState } from "react";
 
-// export const DanhGiaBanTin = ({ banTin, user }: ParamsType) => {
-// 	const currentPathName = usePathname();
-// 	const [isTraLoi, setTrangThaiTraLoi] = useState<string | undefined>();
+type ParamsType = {
+	banTin: NonNullable<Awaited<ReturnType<typeof layBanTin>>>;
+	userJSON: string | null;
+};
 
-// 	if (banTin?.DanhGia.length === 0)
-// 		return (
-// 			<div className="flex flex-col gap-4 pt-4">
-// 				<h3 className="text-2xl font-bold">Đánh Giá</h3>
-// 				<div className="h-20 w-full">
-// 					<div className="flex h-full items-center justify-center gap-5">
-// 						<MessagesSquare strokeWidth={1} size={40} />
-// 						<span>Hãy là người đầu tiên bình luận trong bài</span>
-// 					</div>
-// 				</div>
+export const DanhGiaBanTin = ({ banTin, userJSON }: ParamsType) => {
+	const user = userJSON ? (JSON.parse(userJSON) as User) : null;
 
-// 				{user && <DanhGiaTextArea banTin={banTin} user={user} currentPathName={currentPathName} />}
-// 			</div>
-// 		);
+	const {
+		data,
+		isLoading,
+		isSuccess,
+		refetch: refetchDanhGia,
+	} = trpc.danhGia.getDanhGia.useQuery({ maBanTin: banTin.MaBanTin }, { refetchOnReconnect: false, refetchOnWindowFocus: false });
 
-// 	return (
-// 		<div className="flex flex-col gap-4 pt-4">
-// 			<h3 className="text-2xl font-bold">Đánh Giá ({banTin.danhGia.length})</h3>
-// 			{user && <DanhGiaTextArea banTin={banTin} user={user} currentPathName={currentPathName} />}
+	if (isLoading) {
+		return (
+			<div className="flex items-center justify-center pt-4">
+				<Spinner label="Loading..." color="primary" />
+			</div>
+		);
+	}
 
-// 			<div className="flex flex-col gap-y-4">
-// 				{banTin.danhGia.map((danhGia) => (
-// 					<DanhGia
-// 						key={`${danhGia.maDanhGia}-${danhGia.maNguoiDung}`}
-// 						danhGia={danhGia}
-// 						banTin={banTin}
-// 						user={user}
-// 						currentPathName={currentPathName}
-// 						isTraLoi={isTraLoi}
-// 						setTrangThaiTraLoi={setTrangThaiTraLoi}
-// 					/>
-// 				))}
-// 			</div>
-// 		</div>
-// 	);
-// };
+	if (isSuccess && data.length === 0)
+		return (
+			<div className="flex flex-col gap-4 pt-4">
+				<h3 className="text-2xl font-bold">Đánh Giá</h3>
+				<div className="h-20 w-full">
+					<div className="flex h-full items-center justify-center gap-5">
+						<MessagesSquare strokeWidth={2} size={40} />
+						<span className="text-xl">Hãy là người đầu tiên bình luận trong bài</span>
+					</div>
+				</div>
 
-// const DanhGia = ({
-// 	danhGia,
-// 	banTin,
-// 	user,
-// 	currentPathName,
-// 	isTraLoi,
-// 	setTrangThaiTraLoi,
-// }: {
-// 	danhGia: ParamsType["banTin"]["danhGia"][number];
-// 	banTin: ParamsType["banTin"];
-// 	user: User | null;
-// 	currentPathName: string;
-// 	isTraLoi: string | undefined;
-// 	setTrangThaiTraLoi: Dispatch<SetStateAction<string | undefined>>;
-// }) => {
-// 	return (
-// 		<div className="grid grid-cols-[40px_auto] gap-4">
-// 			<div className="h-max overflow-hidden rounded-full">
-// 				<Image src={danhGia.nguoiDung.anhDaiDien as string} alt="" width={40} height={40} />
-// 			</div>
+				{user && (
+					<DanhGiaTextArea
+						maBanTin={banTin.MaBanTin}
+						user={user}
+						refetch={async () => {
+							await refetchDanhGia();
+						}}
+					/>
+				)}
+			</div>
+		);
 
-// 			<div className="flex flex-col gap-4">
-// 				<div className="flex flex-col gap-2">
-// 					<div className="text-lg font-bold">
-// 						<span>{danhGia.nguoiDung.tenNguoiDung}</span>
-// 					</div>
+	return (
+		<div className="flex flex-col gap-4 pt-4">
+			{user && (
+				<DanhGiaTextArea
+					maBanTin={banTin.MaBanTin}
+					user={user}
+					refetch={async () => {
+						await refetchDanhGia();
+					}}
+				/>
+			)}
 
-// 					<div>{danhGia.noiDung}</div>
+			<div className="flex flex-col gap-2">
+				{isSuccess &&
+					data.map((danhGia) => {
+						return (
+							<DanhGia
+								key={danhGia.MaBanTin}
+								danhGia={danhGia}
+								user={user}
+								isTraLoi={false}
+								refetch={async () => {
+									await refetchDanhGia();
+								}}
+							/>
+						);
+					})}
+			</div>
+		</div>
+	);
+};
 
-// 					<div className="flex gap-4">
-// 						<button className="flex h-max items-center justify-center gap-2">
-// 							<ThumbsUp size={16} /> {danhGia.soLuotThich}
-// 						</button>
-// 						<button onClick={() => setTrangThaiTraLoi((prev) => (prev !== danhGia.maDanhGia ? danhGia.maDanhGia : undefined))}>
-// 							Trả lời
-// 						</button>
-// 						<span className="h-max">{dayjs(danhGia.ngayDanhGia).fromNow()}</span>
-// 					</div>
-// 				</div>
+type DanhGiaParams = {
+	danhGia: RouterOutput["danhGia"]["getDanhGia"][number];
+	refetch: () => Promise<void>;
+	user: User | null;
+	isTraLoi: boolean;
+};
 
-// 				{isTraLoi && isTraLoi === danhGia.maDanhGia && (
-// 					<div>
-// 						<TraLoiDanhGia banTin={banTin} user={user} currentPathName={currentPathName} maTraLoi={danhGia.maDanhGia} />
-// 					</div>
-// 				)}
+const DanhGia = ({ danhGia, refetch, user, isTraLoi }: DanhGiaParams) => {
+	const [isClicked, setClicked] = useState(false);
+	const [isExpanded, setExpanded] = useState(false);
 
-// 				{danhGia.traLoiBoi &&
-// 					danhGia.traLoiBoi.map((traLoi) => {
-// 						return (
-// 							<div key={`${traLoi.maDanhGia}-${danhGia.maNguoiDung}`} className="grid grid-cols-[40px_auto] gap-4">
-// 								<div className="h-max overflow-hidden rounded-full">
-// 									<Image src={traLoi.nguoiDung.anhDaiDien as string} alt="" width={40} height={40} />
-// 								</div>
+	const {
+		data,
+		isLoading,
+		refetch: refetchLikes,
+	} = trpc.danhGia.checkThichDanhGia.useQuery(
+		{ maDanhGia: danhGia.MaDanhGia },
+		{ refetchOnReconnect: false, refetchOnWindowFocus: false },
+	);
 
-// 								<div className="flex flex-col gap-2">
-// 									<div className="text-lg font-bold">
-// 										<span>{traLoi.nguoiDung.tenNguoiDung}</span>
-// 									</div>
+	const thichDanhGia = trpc.danhGia.thichDanhGia.useMutation({
+		onSuccess: async () => {
+			await Promise.allSettled([refetchLikes(), refetch()]);
+		},
+		onError: ({ message }) => toast.error("Lỗi: " + message),
+	});
 
-// 									<div>{traLoi.noiDung}</div>
+	return (
+		<Card as={isTraLoi ? Fragment : "div"}>
+			<CardBody as={isTraLoi ? Fragment : "div"}>
+				<div className="grid grid-cols-[max-content,1fr] gap-x-4">
+					<Avatar size="lg" src={danhGia.NguoiDung.TaiKhoan.AnhDaiDien} className="row-[span_7_/_span_7]" />
 
-// 									<div className="flex gap-4">
-// 										<button className="flex h-max items-center justify-center gap-2">
-// 											<ThumbsUp size={16} /> {danhGia.soLuotThich}
-// 										</button>
+					<div className="flex flex-col gap-1">
+						<span> {danhGia.NguoiDung.TaiKhoan.TenTaiKhoan} </span>
+						<p className="text-sm">{danhGia.NoiDung}</p>
+					</div>
 
-// 										<span className="h-max">{dayjs(danhGia.ngayDanhGia).fromNow()}</span>
-// 									</div>
-// 								</div>
-// 							</div>
-// 						);
-// 					})}
-// 			</div>
-// 		</div>
-// 	);
-// };
+					<Spacer y={2} />
 
-// const TraLoiDanhGia = ({ banTin, user, currentPathName, maTraLoi }: ParamsType & { currentPathName: string; maTraLoi: string }) => {
-// 	const [isFocus, setFocus] = useState(false);
-// 	const formRef = useRef<HTMLFormElement>(null);
+					<div className="flex items-center justify-between">
+						<div className="flex items-center gap-2">
+							<Button
+								size="sm"
+								variant="bordered"
+								color={data ? "primary" : "default"}
+								className="text-md"
+								isLoading={isLoading || thichDanhGia.isLoading}
+								startContent={
+									isLoading || thichDanhGia.isLoading ? undefined : (
+										<ThumbsUp size={16} className={data ? "fill-blue-600 stroke-blue-600" : undefined} />
+									)
+								}
+								onClick={() => thichDanhGia.mutate({ maDanhGia: danhGia.MaDanhGia })}
+							>
+								{danhGia._count.DanhGiaLikes}
+							</Button>
 
-// 	const username = useMemo(
-// 		() =>
-// 			user &&
-// 			(user.username
-// 				? user.username
-// 				: (user.emailAddresses.filter((e) => e.id === user.primaryEmailAddressId)[0]?.emailAddress.split("@")[0] as string)),
-// 		[user],
-// 	);
+							{!isTraLoi && (
+								<Button
+									startContent={<Reply size={16} />}
+									size="sm"
+									variant="bordered"
+									onClick={() => setClicked((p) => !p)}
+								>
+									Trả lời
+								</Button>
+							)}
 
-// 	return (
-// 		<form
-// 			ref={formRef}
-// 			className="grid w-full gap-4"
-// 			id="danhGiaBanTin"
-// 			// eslint-disable-next-line @typescript-eslint/no-misused-promises
-// 			action={async (data) => {
-// 				formRef.current?.reset();
-// 				await traLoiDanhGia({
-// 					data,
-// 					maBanTin: banTin.maBanTin,
-// 					maNguoiDung: user?.id,
-// 					url: currentPathName,
-// 					maDanhGia: maTraLoi,
-// 				});
-// 			}}
-// 		>
-// 			<Textarea
-// 				onClick={() => (!isFocus ? setFocus(true) : undefined)}
-// 				placeholder="Chia sẽ đánh giá của bạn"
-// 				name="noiDungDanhGia"
-// 				id="noiDungDanhGia"
-// 			/>
+							<Button
+								size="sm"
+								isIconOnly
+								color="danger"
+								variant="bordered"
+								startContent={<Flag size={16} />}
+								title="Báo cáo đánh giá vi phạm"
+							/>
+						</div>
+						<span className="text-sm">{dayjs(danhGia.NgayDanhGia).fromNow()}</span>
+					</div>
 
-// 			{isFocus && (
-// 				<div className="flex items-center justify-end gap-4">
-// 					{user && (
-// 						<div className="flex items-center gap-2">
-// 							<Image src={user.imageUrl} width={40} height={40} alt={`${user.username}`} className="rounded-full" />
-// 							<div> {username} </div>
-// 						</div>
-// 					)}
+					{user && isClicked && (
+						<>
+							<Spacer y={2} />
 
-// 					<Button type="submit" className="px-8">
-// 						Gửi
-// 					</Button>
-// 				</div>
-// 			)}
-// 		</form>
-// 	);
-// };
+							<div>
+								<DanhGiaTextArea
+									maBanTin={danhGia.MaBanTin}
+									user={user}
+									maTraLoi={danhGia.MaDanhGia}
+									refetch={async () => {
+										await refetch();
+										setClicked(false);
+									}}
+								/>
+							</div>
+						</>
+					)}
 
-// const DanhGiaTextArea = ({ banTin, user, currentPathName }: ParamsType & { currentPathName: string }) => {
-// 	const [isFocus, setFocus] = useState(false);
-// 	const formRef = useRef<HTMLFormElement>(null);
+					{!isTraLoi && danhGia.TraLoiBoi.length > 0 && (
+						<>
+							<Spacer y={2} />
 
-// 	const username = useMemo(
-// 		() =>
-// 			user &&
-// 			(user.username
-// 				? user.username
-// 				: (user.emailAddresses.filter((e) => e.id === user.primaryEmailAddressId)[0]?.emailAddress.split("@")[0] as string)),
-// 		[user],
-// 	);
+							<div>
+								{!isExpanded && (
+									<Button
+										variant="light"
+										size="sm"
+										startContent={<Reply size={16} className="rotate-180" />}
+										onClick={() => setExpanded(true)}
+									>
+										{danhGia.TraLoiBoi.length} trả lời
+									</Button>
+								)}
 
-// 	return (
-// 		<form
-// 			ref={formRef}
-// 			className="grid w-full gap-4"
-// 			id="danhGiaBanTin"
-// 			// eslint-disable-next-line @typescript-eslint/no-misused-promises
-// 			action={async (data) => {
-// 				formRef.current?.reset();
-// 				await danhGiaBanTin({ data, maBanTin: banTin.maBanTin, maNguoiDung: user?.id, url: currentPathName });
-// 			}}
-// 		>
-// 			<Textarea
-// 				onClick={() => (!isFocus ? setFocus(true) : undefined)}
-// 				placeholder="Chia sẽ đánh giá của bạn"
-// 				name="noiDungDanhGia"
-// 				id="noiDungDanhGia"
-// 			/>
-
-// 			{isFocus && (
-// 				<div className="flex items-center justify-end gap-4">
-// 					{user && (
-// 						<div className="flex items-center gap-2">
-// 							<Image src={user.imageUrl} width={40} height={40} alt={`${user.username}`} className="rounded-full" />
-// 							<div> {username} </div>
-// 						</div>
-// 					)}
-
-// 					<Button type="submit" className="px-8">
-// 						Gửi
-// 					</Button>
-// 				</div>
-// 			)}
-// 		</form>
-// 	);
-// };
+								{isExpanded && (
+									<blockquote className="flex flex-col gap-4 border-l-2 border-default-500 pl-4">
+										{danhGia.TraLoiBoi.map((traLoi) => {
+											return (
+												<DanhGia
+													key={traLoi.MaBanTin}
+													// @ts-expect-error TODO: Cho phép người dùng trả lời đánh giá trong 1 đánh giá khác
+													danhGia={traLoi}
+													user={user}
+													isTraLoi={true}
+													refetch={async () => {
+														await refetch();
+													}}
+												/>
+											);
+										})}
+									</blockquote>
+								)}
+							</div>
+						</>
+					)}
+				</div>
+			</CardBody>
+		</Card>
+	);
+};

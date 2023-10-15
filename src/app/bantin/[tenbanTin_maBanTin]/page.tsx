@@ -1,20 +1,17 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+
+import { headers } from "next/headers";
+import NextLink from "next/link";
 import { notFound } from "next/navigation";
 
-import ReactMarkdown from "react-markdown";
-
-// import { DanhGiaBanTin } from "@/components/ban-tin/DanhGia";
-// import { ThanhCongCu } from "@/components/ban-tin/thanhCongCu";
-
-// import { DanhDauDaXemBanTin } from "@/components/ban-tin/DanhDauDaXemBanTin";
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { encodeBanTinPath } from "@/utils/path";
+import { DanhGiaBanTin } from "@/components/ban-tin/DanhGia";
+import { SideNews } from "@/components/ban-tin/SideNews";
+import { ThanhCongCu } from "@/components/ban-tin/ThanhCongCu";
+import { Link } from "@/components/common/Link";
 
 import { currentUser } from "@clerk/nextjs";
-import { headers } from "next/headers";
-import { checkDaLuuBanTin, layBanTin, layBanTinXemNhieu } from "./data";
+import { layBanTin } from "./data";
+import { NoiDung } from "./noiDung";
 
 type Params = { params: { tenbanTin_maBanTin: string } };
 export const revalidate = 600;
@@ -33,14 +30,8 @@ export const generateMetadata = async ({ params: { tenbanTin_maBanTin } }: Param
 export default async function BanTinPage({ params: { tenbanTin_maBanTin } }: Params) {
 	const user = await currentUser();
 
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	const [banTin, banTinXemNhieu, isLuuBanTin] = await Promise.all([
-		layBanTin(tenbanTin_maBanTin),
-		layBanTinXemNhieu(tenbanTin_maBanTin),
-		checkDaLuuBanTin(tenbanTin_maBanTin, user?.id),
-	]);
+	const banTin = await layBanTin(tenbanTin_maBanTin);
 
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	const host = headers().get("host");
 
 	const dateFormatter = new Intl.DateTimeFormat("vi", { dateStyle: "full" });
@@ -50,13 +41,12 @@ export default async function BanTinPage({ params: { tenbanTin_maBanTin } }: Par
 
 	return (
 		<>
-			{/* {user && <DanhDauDaXemBanTin user={user} banTin={banTin} />} */}
 			<div className="container mx-auto flex max-w-6xl flex-col gap-4 py-4">
 				<div className="flex gap-4">
 					<section className="w-2/3">
 						<div className="flex items-center justify-between">
 							<div>
-								<Link href={`/danhMuc/${banTin.DanhMuc.TenDanhMuc}`} className="text-blue-600 hover:text-blue-400">
+								<Link as={NextLink} href={`/danhMuc/${banTin.DanhMuc.TenDanhMuc}`} underline="hover">
 									{banTin.DanhMuc.TenDanhMuc}
 								</Link>
 							</div>
@@ -68,60 +58,19 @@ export default async function BanTinPage({ params: { tenbanTin_maBanTin } }: Par
 
 						<div className="rounded-br-lg border-b-[1px] border-r-[1px] border-[#262626]/60 pr-4">
 							<h1 className="py-5 text-3xl font-bold"> {banTin.TenBanTin} </h1>
-							<ReactMarkdown
-								className="[&>p]:pb-5"
-								components={{
-									// eslint-disable-next-line @typescript-eslint/no-unused-vars
-									img: ({ node, alt, src, ...prop }) => (
-										<span className="flex flex-col gap-y-2">
-											{/* eslint-disable-next-line @next/next/no-img-element */}
-											<img src={src as string} alt={alt as string} {...prop} className="w-full rounded-lg" />
-											<span className="text-sm text-gray-600 dark:text-gray-300">{alt}</span>
-										</span>
-									),
-								}}
-							>
-								{banTin.NoiDung}
-							</ReactMarkdown>
+
+							<NoiDung maBanTin={banTin.MaBanTin}>{banTin.NoiDung}</NoiDung>
 						</div>
 
 						<div className="flex items-center justify-end pr-4 pt-5">
-							<span className="text-xl font-bold">{banTin.NhanVien.TaiKhoan.HoTen}</span>
+							<span className="text-xl font-bold">{banTin.NhanVien.TaiKhoan.TenTaiKhoan}</span>
 						</div>
 
-						{/* <ThanhCongCu banTin={banTin} host={host as string} user={user} daLuu={isLuuBanTin} />
-						<DanhGiaBanTin banTin={banTin} user={user} /> */}
+						<ThanhCongCu banTin={banTin} host={host as string} />
+						<DanhGiaBanTin banTin={banTin} userJSON={user ? JSON.stringify(user) : null} />
 					</section>
 
-					{/* <section className="h-max w-1/3 py-3">
-						<h4 className="pb-3 text-xl font-bold"> Xem nhiều </h4>
-
-						<div className="flex flex-col gap-y-3">
-							{banTinXemNhieu.map((banTin, i) => {
-								const banTinPath = encodeBanTinPath(banTin);
-
-								return (
-									<>
-										<Link href={banTinPath} key={banTin.MaBanTin}>
-											<div className="grid grid-cols-[110px_1fr] gap-2">
-												<div className="relative aspect-video w-full">
-													<Image src={banTin.PreviewImage} alt={banTin.TenBanTin} fill className="rounded-lg" />
-												</div>
-												<div className="self-center text-sm">
-													<span>{banTin.TenBanTin}</span>
-												</div>
-											</div>
-										</Link>
-
-										{i < banTinXemNhieu.length - 1 && (
-											// <Separator orientation="horizontal" className="dark:bg-gray-500/60" />
-											<div></div>
-										)}
-									</>
-								);
-							})}
-						</div>
-					</section> */}
+					<SideNews />
 				</div>
 			</div>
 		</>

@@ -1,20 +1,52 @@
 "use client";
 
 import { getUrl } from "@/utils/path";
+import { trpc } from "@/utils/trpc/client";
+
 import { Button, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger, Link } from "@nextui-org/react";
 import { Copy, Heart, MoreHorizontal, Twitter } from "lucide-react";
-
 import { toast } from "react-hot-toast";
 
-export const ChiaSeDropdown = ({ duongDanBanTin, tenBanTin, host }: { duongDanBanTin: string; tenBanTin: string; host: string }) => {
+type PropsParms = { duongDanBanTin: string; tenBanTin: string; host: string; maBanTin: string };
+
+export const ChiaSeDropdown = ({ duongDanBanTin, tenBanTin, maBanTin, host }: PropsParms) => {
 	const tweetUrl = new URL("https://twitter.com/intent/tweet");
 
 	tweetUrl.searchParams.set("text", tenBanTin);
 	tweetUrl.searchParams.set("url", getUrl(host, duongDanBanTin));
 
+	const {
+		data,
+		isLoading,
+		refetch: recheckYeuThich,
+	} = trpc.banTin.checkYeuThich.useQuery(
+		{ maBanTin: maBanTin },
+		{
+			refetchOnReconnect: false,
+			refetchOnWindowFocus: false,
+		},
+	);
+	const yeuThich = trpc.banTin.yeuThich.useMutation({
+		onSuccess: async () => await recheckYeuThich(),
+		onError: ({ message }) => toast.error("Lỗi: " + message),
+	});
+
 	return (
 		<div className="flex items-center justify-end gap-2">
-			<Button isIconOnly radius="full" variant="light" startContent={<Heart size={20} />} />
+			<Button
+				isLoading={isLoading || yeuThich.isLoading}
+				isIconOnly
+				radius="full"
+				variant="light"
+				startContent={
+					isLoading || yeuThich.isLoading ? undefined : (
+						<Heart size={20} className={data ? "fill-red-600 stroke-red-600" : undefined} />
+					)
+				}
+				onClick={() => {
+					yeuThich.mutate({ maBanTin: maBanTin });
+				}}
+			/>
 
 			<Dropdown placement="bottom-end">
 				<DropdownTrigger>

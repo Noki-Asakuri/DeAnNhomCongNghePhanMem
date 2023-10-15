@@ -28,7 +28,7 @@ export const SideBar = ({ danhMuc }: ParamsType) => {
 								const banTinPath = encodeBanTinPath(banTin);
 
 								return (
-									<Card key={`${banTin.MaBanTin}-${item.MaDanhMuc}`}>
+									<Card isHoverable isPressable as="div" key={`${banTin.MaBanTin}-${item.MaDanhMuc}`}>
 										<Link className="block aspect-video h-auto w-full" href={banTinPath}>
 											<Image
 												removeWrapper
@@ -49,15 +49,23 @@ export const SideBar = ({ danhMuc }: ParamsType) => {
 											<Chip
 												classNames={{
 													base: "max-w-full w-full",
-													content: "grid w-full grid-cols-3 gap-3 place-items-center",
+													content:
+														"grid w-full grid-cols-[minmax(max-content,1fr),1fr,1fr] gap-3 place-items-center",
 												}}
 											>
-												<Link underline="hover" as={NextLink} href={`/danhMuc/${item.TenDanhMuc}`}>
+												<Link
+													className="text-sm"
+													underline="hover"
+													as={NextLink}
+													href={`/danhMuc/${item.TenDanhMuc}`}
+												>
 													{item.TenDanhMuc}
 												</Link>
+
 												<span>{dayjs(banTin.NgayDang).fromNow()}</span>
-												<div className="flex gap-2">
-													<MessagesSquare size={20} /> {banTin.DanhGia.length}
+
+												<div className="flex items-center justify-center gap-2">
+													<MessagesSquare size={16} /> {banTin.DanhGia.length}
 												</div>
 											</Chip>
 										</CardFooter>

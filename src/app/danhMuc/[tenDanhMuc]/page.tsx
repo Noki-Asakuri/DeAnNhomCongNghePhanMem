@@ -1,15 +1,15 @@
 import { Pagination } from "@/components/common/Pagination";
 import { prisma } from "@/server/db/prisma";
+
 import { encodeBanTinPath } from "@/utils/path";
 import { MessagesSquare } from "lucide-react";
 
 import type { Metadata } from "next";
 
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-export const revalidate = 600;
+export const revalidate = 60;
 
 const layData = async (tenDanhMuc: string) => {
 	return prisma.danhMuc.findFirst({
@@ -67,7 +67,7 @@ export default async function DanhMuc({
 							<div key={`${banTin.MaBanTin}-${banTin.MaDanhMuc}`} className="grid grid-cols-[240px_auto] gap-4">
 								<div className="relative aspect-video w-full overflow-hidden rounded-lg">
 									<Link href={banTinPath}>
-										<Image src={banTin.PreviewImage} alt={banTin.TenBanTin} fill />
+										<img src={banTin.PreviewImage} alt={banTin.TenBanTin} />
 									</Link>
 								</div>
 

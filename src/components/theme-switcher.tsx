@@ -14,11 +14,14 @@ export const ThemeSwitcher = () => {
 		setMounted(true);
 	}, []);
 
-	if (!mounted) return null;
+	if (!mounted) return <Button isLoading isIconOnly />;
 
 	return (
-		<Button onClick={() => setTheme(theme === "dark" ? "light" : "dark")} isIconOnly className="transition-all">
-			{theme === "dark" ? <MoonIcon /> : <SunIcon />}
-		</Button>
+		<Button
+			isIconOnly
+			className="transition-all"
+			onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+			startContent={theme === "dark" ? <MoonIcon /> : <SunIcon />}
+		/>
 	);
 };

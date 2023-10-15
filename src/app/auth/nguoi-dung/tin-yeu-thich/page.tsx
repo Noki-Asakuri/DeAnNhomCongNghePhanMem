@@ -16,7 +16,7 @@ export default async function UserProfilePage() {
 
 	return (
 		<BanTin danhSachBanTin={data}>
-			<BookMarked size={30} /> Bản Tin Yêu Thích
+			<BookMarked size={30} /> Tin Yêu Thích
 		</BanTin>
 	);
 }

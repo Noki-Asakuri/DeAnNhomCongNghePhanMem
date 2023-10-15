@@ -1,91 +1,98 @@
-// "use client";
+"use client";
 
-// import { luuBanTin } from "@/server/action/luuBanTin";
-// import type { BanTinTable } from "@/server/db/schema/banTin";
-// import type { DanhMucTable } from "@/server/db/schema/danhMuc";
-// import { getUrl } from "@/utils/path";
-// import type { User } from "@clerk/clerk-sdk-node";
-// import type { InferModel } from "drizzle-orm";
+import type { layBanTin } from "@/app/bantin/[tenbanTin_maBanTin]/data";
+import { getUrl } from "@/utils/path";
+import { trpc } from "@/utils/trpc/client";
 
-// import { ArrowLeft, Bookmark, Twitter, Link as LinkIcon, BookMarked } from "lucide-react";
+import { Button, ButtonGroup } from "@nextui-org/react";
+import { ArrowLeft, Heart, Link as LinkIcon, Twitter } from "lucide-react";
 
-// import Link from "next/link";
-// import { usePathname } from "next/navigation";
-// import { useState } from "react";
-// import { toast } from "react-hot-toast";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 
-// type ParamsType = {
-// 	banTin: InferModel<typeof BanTinTable, "select"> & { danhMuc: InferModel<typeof DanhMucTable, "select"> | null };
-// 	user: User | null;
-// };
+import { toast } from "react-hot-toast";
 
-// export const ThanhCongCu = ({ banTin, host, user, daLuu }: ParamsType & { host: string; daLuu: boolean }) => {
-// 	const tweetUrl = new URL("https://twitter.com/intent/tweet");
-// 	const currentPath = usePathname();
+type ParamsType = {
+	banTin: Awaited<ReturnType<typeof layBanTin>>;
+};
 
-// 	const [isBookmarked, setBookmark] = useState(daLuu);
+export const ThanhCongCu = ({ banTin, host }: ParamsType & { host: string }) => {
+	const {
+		data,
+		isLoading,
+		refetch: recheckYeuThich,
+	} = trpc.banTin.checkYeuThich.useQuery(
+		{ maBanTin: banTin!.MaBanTin },
+		{
+			refetchOnReconnect: false,
+			refetchOnWindowFocus: false,
+		},
+	);
+	const yeuThich = trpc.banTin.yeuThich.useMutation({
+		onSuccess: async () => await recheckYeuThich(),
+		onError: ({ message }) => toast.error("Lỗi: " + message),
+	});
 
-// 	tweetUrl.searchParams.set("text", banTin.TenBanTin);
-// 	tweetUrl.searchParams.set("url", getUrl(host, currentPath));
+	const tweetUrl = new URL("https://twitter.com/intent/tweet");
+	const currentPath = usePathname();
 
-// 	return (
-// 		<div className="flex items-center justify-between pt-4">
-// 			<div className="flex gap-4">
-// 				<Link href={`/danhMuc/${banTin.danhMuc?.tenDanhMuc}`} className="rounded-lg border border-[#262626] p-2">
-// 					<ArrowLeft />
-// 				</Link>
+	tweetUrl.searchParams.set("text", banTin!.TenBanTin);
+	tweetUrl.searchParams.set("url", getUrl(host, currentPath));
 
-// 				{user && (
-// 					<form
-// 						// eslint-disable-next-line @typescript-eslint/no-misused-promises
-// 						action={async () => {
-// 							if (isBookmarked) return;
-// 							await luuBanTin({ maBanTin: banTin.maBanTin, maNguoiDung: user?.id });
+	return (
+		<div className="flex items-center justify-between pt-4">
+			<div className="flex gap-4">
+				<Button variant="ghost" isIconOnly as={Link} startContent={<ArrowLeft />} href={`/danhMuc/${banTin!.DanhMuc.TenDanhMuc}`} />
 
-// 							setBookmark(true);
-// 						}}
-// 					>
-// 						<button type="submit" className="flex items-center gap-2 rounded-lg border border-[#262626] p-2">
-// 							{isBookmarked && (
-// 								<>
-// 									<BookMarked size={20} /> Đã lưu
-// 								</>
-// 							)}
+				<Button
+					isIconOnly
+					variant="ghost"
+					isLoading={isLoading || yeuThich.isLoading}
+					startContent={
+						isLoading || yeuThich.isLoading ? undefined : (
+							<Heart size={20} className={data ? "fill-red-600 stroke-red-600" : undefined} />
+						)
+					}
+					onClick={() => {
+						yeuThich.mutate({ maBanTin: banTin!.MaBanTin });
+					}}
+				/>
+			</div>
 
-// 							{!isBookmarked && (
-// 								<>
-// 									<Bookmark size={20} /> Lưu bản tin
-// 								</>
-// 							)}
-// 						</button>
-// 					</form>
-// 				)}
-// 			</div>
+			<div className="flex items-center gap-2">
+				<span> Chia sẽ:</span>
 
-// 			<div className="flex items-center gap-4">
-// 				<span> Chia sẽ: </span>
+				<ButtonGroup>
+					<Button
+						isIconOnly
+						as={Link}
+						color="primary"
+						variant="ghost"
+						href={tweetUrl.toString()}
+						target="_blank"
+						title="Chia sẽ bản tin này lên X"
+						startContent={<Twitter size={20} />}
+					/>
 
-// 				<Link
-// 					className="gap-2 rounded-full border border-[#262626] p-2 hover:cursor-pointer"
-// 					href={tweetUrl.toString()}
-// 					target="_blank"
-// 					title="Chia sẽ bản tin này lên X"
-// 				>
-// 					<Twitter size={20} />
-// 				</Link>
-
-// 				<button
-// 					className="rounded-full border border-[#262626]/60 p-2"
-// 					title="Sao chép đường dẫn của bản tin này"
-// 					// eslint-disable-next-line @typescript-eslint/no-misused-promises
-// 					onClick={async () => {
-// 						await window.navigator.clipboard.writeText(getUrl(host, currentPath));
-// 						toast.success("Sao chép đường đẫn thành công");
-// 					}}
-// 				>
-// 					<LinkIcon size={20} />
-// 				</button>
-// 			</div>
-// 		</div>
-// 	);
-// };
+					<Button
+						isIconOnly
+						variant="ghost"
+						color="success"
+						title="Sao chép đường dẫn của bản tin này"
+						startContent={<LinkIcon size={20} />}
+						onClick={() => {
+							window.navigator.clipboard
+								.writeText(getUrl(host, currentPath))
+								.then(() => {
+									toast.success("Sao chép đường đẫn thành công");
+								})
+								.catch(() => {
+									toast.error("Sao chép đường đẫn thất bại");
+								});
+						}}
+					/>
+				</ButtonGroup>
+			</div>
+		</div>
+	);
+};

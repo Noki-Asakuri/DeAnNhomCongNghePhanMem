@@ -29,7 +29,10 @@ export async function POST(request: Request) {
 					MaTaiKhoan: data.id,
 					AnhDaiDien: data.image_url,
 					Email: main_email.email_address,
-					HoTen: data.last_name + data.first_name,
+					Ho: data.last_name,
+					Ten: data.first_name,
+					TenTaiKhoan: data.username,
+					NguoiDung: { create: { MaNguoiDung: data.id } },
 				},
 			});
 
@@ -49,7 +52,9 @@ export async function POST(request: Request) {
 				data: {
 					AnhDaiDien: data.image_url,
 					Email: main_email.email_address,
-					HoTen: data.last_name + data.first_name,
+					Ho: data.last_name,
+					Ten: data.first_name,
+					TenTaiKhoan: data.username,
 				},
 			});
 

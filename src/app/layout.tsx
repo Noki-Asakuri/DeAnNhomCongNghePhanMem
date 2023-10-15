@@ -3,17 +3,18 @@ import "@/styles/globals.css";
 import React from "react";
 
 import { viVN } from "@clerk/localizations";
-import { ClerkProvider, currentUser } from "@clerk/nextjs";
+import { ClerkProvider } from "@clerk/nextjs";
 
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { Analytics } from "@vercel/analytics/react";
 
 import { MainNavbar } from "@/components/Navbar/MainNavbar";
 import { Toaster } from "@/components/Toaster";
 import { BottomFooter } from "@/components/layout/BottomFooter";
 import { MainLayout } from "@/components/layout/MainLayout";
 
-const inter = Inter({ subsets: ["latin"], display: "swap", weight: "400" });
+const font = Inter({ subsets: ["latin"], display: "swap", weight: "400" });
 
 export const metadata: Metadata = {
 	title: "Bản Tin 24H - Nguồn Tin Tức Đa Dạng và Chính Xác",
@@ -25,21 +26,20 @@ export const metadata: Metadata = {
 	icons: "/favicon.png",
 };
 
-export default async function RootLayout({ children }: { children: React.ReactNode }) {
-	const user = await currentUser();
-
+export default function RootLayout({ children }: { children: React.ReactNode }) {
 	return (
 		<ClerkProvider localization={viVN}>
-			<html lang="en" className="dark">
+			<html lang="en">
 				<head />
-				<body className={inter.className}>
+				<body className={font.className}>
 					<MainLayout>
-						<MainNavbar userJSON={user ? JSON.stringify(user) : null} />
+						<MainNavbar />
 						<main className="flex h-full max-h-max max-w-full flex-1 flex-col overflow-hidden">{children}</main>
 						<BottomFooter />
 					</MainLayout>
 
 					<Toaster />
+					<Analytics />
 				</body>
 			</html>
 		</ClerkProvider>

@@ -39,9 +39,7 @@ model BanTin {
     PreviewImage String    @db.Text
     TrangThai    TrangThai @default(UNAPPROVE)
     NgayDang     DateTime  @default(now()) @db.Timestamp(3)
-
-    luoiXem    Int @default(0) @db.Int
-    luoiChiaSe Int @default(0) @db.Int
+    LuoiXem      Int       @default(0) @db.Int
 
     MaDanhMuc String  @db.VarChar(36)
     DanhMuc   DanhMuc @relation(fields: [MaDanhMuc], references: [MaDanhMuc])
@@ -50,18 +48,20 @@ model BanTin {
     NhanVien   NhanVien @relation(fields: [MaNhanVien], references: [MaNhanVien])
 
     DanhGia        DanhGia[]
-    BanTinDaLuu    BanTinDaLuu[]
+    BanTinDaDoc    BanTinDaDoc[]
     BanTinYeuThich BanTinYeuThich[]
 
     @@index([MaBanTin, MaDanhMuc, MaNhanVien])
 }
 
-model BanTinDaLuu {
+model BanTinDaDoc {
     MaBanTin String @db.VarChar(36)
     BanTin   BanTin @relation(fields: [MaBanTin], references: [MaBanTin])
 
     MaNguoiDung String    @db.VarChar(32)
     NguoiDung   NguoiDung @relation(fields: [MaNguoiDung], references: [MaNguoiDung])
+
+    ReadAt DateTime @default(now()) @db.Timestamp(3)
 
     @@id([MaBanTin, MaNguoiDung])
     @@index([MaBanTin, MaNguoiDung])
@@ -88,7 +88,10 @@ model DanhMuc {
 model TaiKhoan {
     MaTaiKhoan String @id @db.VarChar(32)
 
-    HoTen      String    @db.VarChar(255)
+    Ho          String? @db.VarChar(255)
+    Ten         String? @db.VarChar(255)
+    TenTaiKhoan String? @db.VarChar(255)
+
     Email      String    @unique @db.VarChar(255)
     NgayTaoTK  DateTime  @default(now()) @db.Timestamp(3)
     GioiTinh   GioiTinh  @default(Male)
@@ -115,19 +118,17 @@ model NhanVien {
 }
 
 model NguoiDung {
-    MaNguoiDung String @id @db.VarChar(32)
-
+    MaNguoiDung  String  @id @db.VarChar(32)
     DangKyDatBao Boolean @default(false)
 
     DanhGia        DanhGia[]
     YeuCau         YeuCau[]
-    BanTinDaLuu    BanTinDaLuu[]
+    BanTinDaDoc    BanTinDaDoc[]
     BanTinYeuThich BanTinYeuThich[]
+    DanhGiaLikes   DanhGiaLikes[]
 
     MaTaiKhoan String   @unique
     TaiKhoan   TaiKhoan @relation(fields: [MaTaiKhoan], references: [MaTaiKhoan])
-
-    DanhGiaLikes DanhGiaLikes[]
 
     @@index([MaNguoiDung])
 }

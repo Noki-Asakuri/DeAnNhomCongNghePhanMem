@@ -7,15 +7,13 @@ import { env } from "@/env.mjs";
 declare global {
 	// eslint-disable-next-line no-var
 	var prisma: PrismaClient;
-
 	// eslint-disable-next-line no-var
 	var connection: Connection;
-
 	// eslint-disable-next-line no-var
 	var adapter: PrismaPlanetScale;
 }
 
-const connection = global.connection || connect({ url: env.DATABASE_URL, fetch: fetch });
+const connection = global.connection || connect({ url: env.DATABASE_URL });
 const adapter = global.adapter || new PrismaPlanetScale(connection);
 
 export const prisma =

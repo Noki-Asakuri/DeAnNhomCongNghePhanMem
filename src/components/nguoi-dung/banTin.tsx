@@ -1,9 +1,9 @@
 "use client";
 
 import { Card, CardBody, CardHeader } from "@nextui-org/react";
-import type { BanTinDaLuu, BanTinYeuThich } from "@prisma/client";
+import type { BanTinDaDoc, BanTinYeuThich } from "@prisma/client";
 
-export const BanTin = ({ danhSachBanTin, children }: { danhSachBanTin: (BanTinDaLuu | BanTinYeuThich)[]; children: React.ReactNode }) => {
+export const BanTin = ({ danhSachBanTin, children }: { danhSachBanTin: (BanTinDaDoc | BanTinYeuThich)[]; children: React.ReactNode }) => {
 	return (
 		<Card className="flex-1">
 			<CardHeader>

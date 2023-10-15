@@ -41,7 +41,12 @@ export const BanTinMoi = ({ banTin, host, isLast }: ParamsType & { host: string;
 								</Link>
 							</Chip>
 
-							<ChiaSeDropdown duongDanBanTin={banTinPath} host={host} tenBanTin={banTin.TenBanTin} />
+							<ChiaSeDropdown
+								duongDanBanTin={banTinPath}
+								host={host}
+								tenBanTin={banTin.TenBanTin}
+								maBanTin={banTin.MaBanTin}
+							/>
 						</div>
 					</div>
 				</CardBody>

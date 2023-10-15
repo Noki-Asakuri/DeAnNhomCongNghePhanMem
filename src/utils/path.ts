@@ -12,7 +12,7 @@ export const decodeBanTinPath = (tenBanTin_maBanTin: string) => {
 		decodedPath.slice(-32).replace(/(\w{8})(\w{4})(\w{4})(\w{4})(\w{12})/, "$1-$2-$3-$4-$5"),
 	];
 
-	return [tenBanTin, maBanTin] as const;
+	return { tenBanTin, maBanTin };
 };
 
 export const getUrl = (host: string, path: string) => {
