@@ -1,11 +1,11 @@
 "use client";
 
-import { trpc } from "@/utils/trpc/client";
+import { api } from "@/utils/trpc/react";
 import { Spinner } from "@nextui-org/react";
 import { BanTinHot } from "../HomePage/BanTinHot";
 
 export const SideNews = () => {
-	const { data, isLoading, isSuccess } = trpc.banTin.layBanTinXemNhieu.useQuery(undefined, {
+	const { data, isLoading, isSuccess } = api.banTin.layBanTinXemNhieu.useQuery(undefined, {
 		refetchOnReconnect: false,
 		refetchOnWindowFocus: false,
 	});

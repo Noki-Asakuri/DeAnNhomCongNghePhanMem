@@ -2,13 +2,14 @@
 
 import NextLink from "next/link";
 
-import { encodeBanTinPath } from "@/utils/path";
 import { dayjs } from "@/utils/dayjs";
-
-import { Card, CardFooter, Divider, Image, Chip, Button, Link } from "@nextui-org/react";
+import { encodeBanTinPath } from "@/utils/path";
+import { api } from "@/utils/trpc/react";
 import { type getBanTinHot } from "./data";
+
+import { Button, Card, CardFooter, Chip, Divider, Image, Link } from "@nextui-org/react";
 import { Eye, Heart, MessagesSquare } from "lucide-react";
-import { trpc } from "@/utils/trpc/client";
+
 import toast from "react-hot-toast";
 
 type ParamsType = {
@@ -22,14 +23,14 @@ export const BanTinHot = ({ banTin }: ParamsType) => {
 		data,
 		isLoading,
 		refetch: recheckYeuThich,
-	} = trpc.banTin.checkYeuThich.useQuery(
+	} = api.banTin.checkYeuThich.useQuery(
 		{ maBanTin: banTin.MaBanTin },
 		{
 			refetchOnReconnect: false,
 			refetchOnWindowFocus: false,
 		},
 	);
-	const yeuThich = trpc.banTin.yeuThich.useMutation({
+	const yeuThich = api.banTin.yeuThich.useMutation({
 		onSuccess: async () => await recheckYeuThich(),
 		onError: ({ message }) => toast.error("Lỗi: " + message),
 	});

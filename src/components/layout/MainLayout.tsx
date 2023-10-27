@@ -4,15 +4,16 @@ import type { ReactNode } from "react";
 import { NextUIProvider } from "@nextui-org/react";
 import { ThemeProvider as NextThemesProvider } from "next-themes";
 
-import TRPCProvider from "@/utils/trpc/Provider";
+import { TRPCReactProvider } from "@/utils/trpc/react";
 
-const MainLayout = ({ children }: { children: ReactNode }) => {
+const MainLayout = ({ children, headers }: { children: ReactNode; headers: Headers }) => {
 	return (
 		<NextUIProvider className="flex min-h-screen flex-col">
 			<NextThemesProvider attribute="class" defaultTheme="dark">
-				<TRPCProvider>{children}</TRPCProvider>
+				<TRPCReactProvider headers={headers}>{children}</TRPCReactProvider>
 			</NextThemesProvider>
 		</NextUIProvider>
 	);
 };
+
 export { MainLayout };

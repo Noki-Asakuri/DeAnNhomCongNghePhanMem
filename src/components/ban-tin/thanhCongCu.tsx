@@ -2,7 +2,7 @@
 
 import type { layBanTin } from "@/app/bantin/[tenbanTin_maBanTin]/data";
 import { getUrl } from "@/utils/path";
-import { trpc } from "@/utils/trpc/client";
+import { api } from "@/utils/trpc/react";
 
 import { Button, ButtonGroup } from "@nextui-org/react";
 import { ArrowLeft, Heart, Link as LinkIcon, Twitter } from "lucide-react";
@@ -21,14 +21,14 @@ export const ThanhCongCu = ({ banTin, host }: ParamsType & { host: string }) => 
 		data,
 		isLoading,
 		refetch: recheckYeuThich,
-	} = trpc.banTin.checkYeuThich.useQuery(
+	} = api.banTin.checkYeuThich.useQuery(
 		{ maBanTin: banTin!.MaBanTin },
 		{
 			refetchOnReconnect: false,
 			refetchOnWindowFocus: false,
 		},
 	);
-	const yeuThich = trpc.banTin.yeuThich.useMutation({
+	const yeuThich = api.banTin.yeuThich.useMutation({
 		onSuccess: async () => await recheckYeuThich(),
 		onError: ({ message }) => toast.error("Lỗi: " + message),
 	});

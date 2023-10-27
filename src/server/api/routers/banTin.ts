@@ -1,8 +1,8 @@
 import z from "zod";
 
-import { authProcedure, publicProcedure, router } from "../trpc";
+import { authProcedure, createTRPCRouter, publicProcedure } from "../trpc";
 
-export const banTinRouter = router({
+export const banTinRouter = createTRPCRouter({
 	yeuThich: authProcedure.input(z.object({ maBanTin: z.string() })).mutation(async ({ ctx, input }) => {
 		const isFavorite = await ctx.prisma.banTinYeuThich.count({ where: { MaBanTin: input.maBanTin, MaNguoiDung: ctx.userId } });
 
@@ -33,7 +33,25 @@ export const banTinRouter = router({
 	markAsRead: authProcedure.input(z.object({ maBanTin: z.string() })).mutation(async ({ ctx, input }) => {
 		const checkIsRead = await ctx.prisma.banTinDaDoc.count({ where: { MaBanTin: input.maBanTin, MaNguoiDung: ctx.userId } });
 
-		if (checkIsRead) return;
+		if (checkIsRead) {
+			const currentDate = new Date();
+
+			await ctx.prisma.banTin.update({
+				where: { MaBanTin: input.maBanTin },
+				data: {
+					LuoiXem: { increment: 1 },
+					BanTinDaDoc: {
+						update: {
+							where: { MaBanTin_MaNguoiDung: { MaBanTin: input.maBanTin, MaNguoiDung: ctx.userId } },
+							data: { ReadAt: currentDate },
+						},
+					},
+				},
+			});
+
+			return;
+		}
+
 		await ctx.prisma.banTin.update({
 			where: { MaBanTin: input.maBanTin },
 			data: {

@@ -13,6 +13,7 @@ import { MainNavbar } from "@/components/Navbar/MainNavbar";
 import { Toaster } from "@/components/Toaster";
 import { BottomFooter } from "@/components/layout/BottomFooter";
 import { MainLayout } from "@/components/layout/MainLayout";
+import { headers } from "next/headers";
 
 const font = Inter({ subsets: ["latin"], display: "swap", weight: "400" });
 
@@ -27,12 +28,14 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+	const header = headers();
+
 	return (
 		<ClerkProvider localization={viVN}>
 			<html lang="en">
 				<head />
 				<body className={font.className}>
-					<MainLayout>
+					<MainLayout headers={header}>
 						<MainNavbar />
 						<main className="flex h-full max-h-max max-w-full flex-1 flex-col overflow-hidden">{children}</main>
 						<BottomFooter />

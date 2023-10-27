@@ -3,8 +3,6 @@
 import { useClerk, useUser } from "@clerk/nextjs";
 import {
 	Avatar,
-	Badge,
-	Button,
 	Divider,
 	Dropdown,
 	DropdownItem,
@@ -16,11 +14,12 @@ import {
 	NavbarContent,
 } from "@nextui-org/react";
 
-import { Bell, BookMarked, History, LogOut, User2, UserCog } from "lucide-react";
-import { usePathname, useRouter } from "next/navigation";
+import { BookMarked, History, LogOut, User2, UserCog } from "lucide-react";
 import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 
 import { ThemeSwitcher } from "../theme-switcher";
+import { NotificationDropdown } from "./NotificationDropdown";
 import { RealTime } from "./Realtime";
 import { SearchBar } from "./SearchBar";
 
@@ -46,11 +45,7 @@ const MainNavbar = () => {
 
 				<ThemeSwitcher />
 
-				{isLoaded && isSignedIn && (
-					<Badge isOneChar color="danger" shape="circle" placement="top-right">
-						<Button radius="full" isIconOnly startContent={<Bell size={20} />} />
-					</Badge>
-				)}
+				{isLoaded && isSignedIn && <NotificationDropdown />}
 
 				<Dropdown placement="bottom-end">
 					<DropdownTrigger>

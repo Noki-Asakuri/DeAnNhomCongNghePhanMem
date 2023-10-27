@@ -2,14 +2,14 @@
 
 import NextLink from "next/link";
 
-import { trpc } from "@/utils/trpc/client";
+import { api } from "@/utils/trpc/react";
 
 import { useTimeoutFn } from "react-use";
 import { Image, Link } from "@nextui-org/react";
 import ReactMarkdown from "react-markdown";
 
 export const NoiDung = ({ maBanTin, children }: { maBanTin: string; children: string }) => {
-	const markAsRead = trpc.banTin.markAsRead.useMutation();
+	const markAsRead = api.banTin.markAsRead.useMutation();
 
 	useTimeoutFn(() => {
 		markAsRead.mutate({ maBanTin });

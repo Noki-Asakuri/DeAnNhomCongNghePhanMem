@@ -1,7 +1,7 @@
 "use client";
 
 import { getUrl } from "@/utils/path";
-import { trpc } from "@/utils/trpc/client";
+import { api } from "@/utils/trpc/react";
 
 import { Button, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger, Link } from "@nextui-org/react";
 import { Copy, Heart, MoreHorizontal, Twitter } from "lucide-react";
@@ -19,14 +19,14 @@ export const ChiaSeDropdown = ({ duongDanBanTin, tenBanTin, maBanTin, host }: Pr
 		data,
 		isLoading,
 		refetch: recheckYeuThich,
-	} = trpc.banTin.checkYeuThich.useQuery(
+	} = api.banTin.checkYeuThich.useQuery(
 		{ maBanTin: maBanTin },
 		{
 			refetchOnReconnect: false,
 			refetchOnWindowFocus: false,
 		},
 	);
-	const yeuThich = trpc.banTin.yeuThich.useMutation({
+	const yeuThich = api.banTin.yeuThich.useMutation({
 		onSuccess: async () => await recheckYeuThich(),
 		onError: ({ message }) => toast.error("Lỗi: " + message),
 	});

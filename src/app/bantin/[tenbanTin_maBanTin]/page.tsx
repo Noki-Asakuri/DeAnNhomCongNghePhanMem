@@ -18,7 +18,6 @@ export const revalidate = 600;
 
 export const generateMetadata = async ({ params: { tenbanTin_maBanTin } }: Params): Promise<Metadata> => {
 	const banTin = await layBanTin(tenbanTin_maBanTin);
-
 	if (!banTin) return { title: "Bản Tin Không Tồn Tại" };
 
 	return {
