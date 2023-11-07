@@ -6,7 +6,7 @@ export default function LoadingLayout() {
 	return (
 		<Card className="flex h-full w-full items-start justify-center">
 			<div className="flex h-full w-full flex-1 items-center justify-center">
-				<Spinner label="Loading..." color="primary" />
+				<Spinner label="Đang tải..." color="primary" />
 			</div>
 		</Card>
 	);

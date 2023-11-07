@@ -1,7 +1,8 @@
-import z from "zod";
+import { authProcedure, createTRPCRouter, publicProcedure, staffProcedure } from "../trpc";
 
 import { TRPCError } from "@trpc/server";
-import { authProcedure, createTRPCRouter, publicProcedure, staffProcedure } from "../trpc";
+
+import z from "zod";
 
 export const danhGiaRouter = createTRPCRouter({
 	getTraLoi: publicProcedure.input(z.object({ maDanhGia: z.string() })).query(async ({ ctx, input }) => {
@@ -64,7 +65,10 @@ export const danhGiaRouter = createTRPCRouter({
 			});
 
 			if (danhGia.TraLoiCho && danhGia.TraLoiCho.MaNguoiDung !== danhGia.MaNguoiDung) {
-				const noiDungThongBao = `${danhGia.NguoiDung.TaiKhoan.TenTaiKhoan} đã trả lời 1 bình luận của bạn trong bài viết "${danhGia.BanTin.TenBanTin}"`;
+				const nguoiDanhGia = danhGia.NguoiDung.TaiKhoan.TenTaiKhoan,
+					tenBanTin = danhGia.BanTin.TenBanTin.trim();
+
+				const noiDungThongBao = `${nguoiDanhGia} đã trả lời 1 bình luận của bạn trong bản tin "${tenBanTin}"`;
 
 				await ctx.prisma.thongBao.create({
 					data: { DaDoc: false, NoiDung: noiDungThongBao, MaBanTin: input.maBanTin, MaNguoiDung: danhGia.TraLoiCho.MaNguoiDung },

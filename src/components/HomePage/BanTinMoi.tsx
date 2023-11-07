@@ -2,11 +2,12 @@
 
 import { encodeBanTinPath } from "@/utils/path";
 
-import { Card, CardBody, Chip, Divider, Image, Link } from "@nextui-org/react";
-import NextLink from "next/link";
-
 import { ChiaSeDropdown } from "../chiaSeDropdown";
 import type { getRandomBanTin } from "./data";
+
+import NextLink from "next/link";
+
+import { Card, CardBody, Chip, Divider, Image, Link } from "@nextui-org/react";
 
 type ParamsType = { banTin: Awaited<ReturnType<typeof getRandomBanTin>>[number] };
 
@@ -25,10 +26,7 @@ export const BanTinMoi = ({ banTin, host, isLast }: ParamsType & { host: string;
 
 						<Link href={banTinPath} className="row-span-2 self-center">
 							<Image
-								classNames={{
-									wrapper: "aspect-square w-32",
-									img: "w-full h-full object-center object-cover",
-								}}
+								classNames={{ wrapper: "aspect-square w-32", img: "w-full h-full object-center object-cover" }}
 								alt={banTin.NoiDungTomTat}
 								src={banTin.PreviewImage}
 							/>

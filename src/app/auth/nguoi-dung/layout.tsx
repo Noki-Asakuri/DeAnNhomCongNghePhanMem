@@ -1,4 +1,4 @@
-import { NguoiDungSideBar } from "@/components/nguoi-dung/side-bar";
+import { NguoiDungSideBar } from "@/components/nguoi-dung/SideBar";
 
 import type { ReactNode } from "react";
 

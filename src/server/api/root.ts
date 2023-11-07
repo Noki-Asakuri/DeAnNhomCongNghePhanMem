@@ -1,8 +1,10 @@
 import { createTRPCRouter } from "@/server/api/trpc";
 
+import { adminRouter } from "./routers/admin";
 import { banTinRouter } from "./routers/banTin";
+import { commonRouter } from "./routers/common";
 import { danhGiaRouter } from "./routers/danhGia";
-import { thongBaoRouter } from "./routers/thongBao";
+import { userRouter } from "./routers/user";
 
 /**
  * This is the primary router for your server.
@@ -12,7 +14,9 @@ import { thongBaoRouter } from "./routers/thongBao";
 export const appRouter = createTRPCRouter({
 	banTin: banTinRouter,
 	danhGia: danhGiaRouter,
-	thongBao: thongBaoRouter,
+	admin: adminRouter,
+	user: userRouter,
+	common: commonRouter,
 });
 
 // export type definition of API

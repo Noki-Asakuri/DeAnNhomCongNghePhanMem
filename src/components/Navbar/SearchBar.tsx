@@ -1,10 +1,11 @@
 "use client";
 
-import { Button, Input } from "@nextui-org/react";
-import { Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-import { useRef, useTransition, type MouseEvent } from "react";
+import { Button, Input } from "@nextui-org/react";
+
+import { Search } from "lucide-react";
+import { type MouseEvent, useRef, useTransition } from "react";
 
 export const SearchBar = () => {
 	const router = useRouter();
@@ -19,7 +20,7 @@ export const SearchBar = () => {
 		const searchQuery = new URLSearchParams();
 		searchQuery.set("query", inputRef.current!.value);
 
-		router.push("/tim-kiem?" + searchQuery.toString());
+		router.push("/search?" + searchQuery.toString());
 	};
 
 	return (

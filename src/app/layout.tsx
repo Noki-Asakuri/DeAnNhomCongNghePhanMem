@@ -1,19 +1,18 @@
-import "@/styles/globals.css";
-
-import React from "react";
-
-import { viVN } from "@clerk/localizations";
-import { ClerkProvider } from "@clerk/nextjs";
-
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import { Analytics } from "@vercel/analytics/react";
-
 import { MainNavbar } from "@/components/Navbar/MainNavbar";
 import { Toaster } from "@/components/Toaster";
 import { BottomFooter } from "@/components/layout/BottomFooter";
 import { MainLayout } from "@/components/layout/MainLayout";
+import "@/styles/globals.css";
+
+import type { Metadata, Viewport } from "next";
+import { Inter } from "next/font/google";
 import { headers } from "next/headers";
+
+import { viVN } from "@clerk/localizations";
+import { ClerkProvider } from "@clerk/nextjs";
+import { Analytics } from "@vercel/analytics/react";
+
+import React from "react";
 
 const font = Inter({ subsets: ["latin"], display: "swap", weight: "400" });
 
@@ -23,8 +22,15 @@ export const metadata: Metadata = {
 		"Bản Tin 24H là trang web tin tức mới nhất với nội dung đa dạng và phong phú về các sự kiện, tin tức xã hội, kinh doanh, công nghệ và nhiều lĩnh vực khác. Cung cấp thông tin tin tức chính xác, đáng tin cậy và nhanh chóng, Bản Tin 24H giúp bạn cập nhật những tin tức mới nhất trong và ngoài nước. Hãy khám phá và trải nghiệm ngay để không bỏ lỡ bất kỳ tin tức quan trọng nào.",
 	authors: { name: "Asakuri", url: "https://github.com/Noki-Asakuri" },
 	keywords: ["Bản Tin 24H", "tin tức", "sự kiện", "xã hội", "kinh doanh", "công nghệ", "nội dung đa dạng"],
-	viewport: { initialScale: 1, maximumScale: 1 },
 	icons: "/favicon.png",
+};
+
+export const viewport: Viewport = {
+	themeColor: "dark",
+	colorScheme: "dark light",
+	width: "device-width",
+	initialScale: 1,
+	maximumScale: 1,
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

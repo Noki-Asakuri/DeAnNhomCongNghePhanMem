@@ -1,15 +1,16 @@
 "use client";
 
-import NextLink from "next/link";
-
 import { dayjs } from "@/utils/dayjs";
 import { encodeBanTinPath } from "@/utils/path";
 import { api } from "@/utils/trpc/react";
+
 import { type getBanTinHot } from "./data";
 
-import { Button, Card, CardFooter, Chip, Divider, Image, Link } from "@nextui-org/react";
-import { Eye, Heart, MessagesSquare } from "lucide-react";
+import NextLink from "next/link";
 
+import { Button, Card, CardFooter, Chip, Divider, Image, Link } from "@nextui-org/react";
+
+import { Eye, Heart, MessagesSquare } from "lucide-react";
 import toast from "react-hot-toast";
 
 type ParamsType = {
@@ -51,7 +52,7 @@ export const BanTinHot = ({ banTin }: ParamsType) => {
 					)
 				}
 				className="absolute right-2 top-2 z-20"
-				onClick={() => {
+				onPress={() => {
 					yeuThich.mutate({ maBanTin: banTin.MaBanTin });
 				}}
 			/>

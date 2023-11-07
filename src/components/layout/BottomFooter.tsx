@@ -1,15 +1,17 @@
-"use client";
+import { api } from "@/utils/trpc/server";
 
 import { Divider, Link, User } from "@nextui-org/react";
 
-export const BottomFooter = () => {
+export const BottomFooter = async () => {
+	const userCount = await api.common.getUserCount.query();
+
 	return (
 		<footer className="container max-w-6xl flex-none py-4">
 			<Divider orientation="horizontal" />
 
 			<div className="grid grid-cols-[1fr_max-content_max-content_max-content_1fr] py-4">
 				<div className="flex flex-col items-center justify-center">
-					<h3 className="font-bold">Bản tin tiếng việt được 0 người đọc</h3>
+					<h3 className="font-bold">Bản tin tiếng Việt được {userCount} người đọc</h3>
 					<p>Thuộc Khoa Công nghệ phần mềm</p>
 				</div>
 
@@ -49,7 +51,7 @@ export const BottomFooter = () => {
 							name="Nguyễn Minh Trí"
 							description={
 								<>
-									<span>Dev 3</span>
+									<span>Dev 3 (Ngoại tuyến)</span>
 								</>
 							}
 						/>

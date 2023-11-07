@@ -1,21 +1,16 @@
 import { BanTin } from "@/components/nguoi-dung/banTin";
-import { prisma } from "@/server/db/prisma";
+import { api } from "@/utils/trpc/server";
 
-import { currentUser } from "@clerk/nextjs";
+import { headers } from "next/headers";
+
 import { BookMarked } from "lucide-react";
 
-const layBanTinYeuThich = async (maNguoiDung: string) => {
-	return await prisma.banTinYeuThich.findMany({
-		where: { MaNguoiDung: maNguoiDung },
-	});
-};
-
 export default async function UserProfilePage() {
-	const user = await currentUser();
-	const data = await layBanTinYeuThich(user!.id);
+	const host = headers().get("host") as string;
+	const data = await api.user.getFavorites.query({ pageNum: 1, perPage: 6 });
 
 	return (
-		<BanTin danhSachBanTin={data}>
+		<BanTin initialFavorites={data} host={host}>
 			<BookMarked size={30} /> Tin Yêu Thích
 		</BanTin>
 	);

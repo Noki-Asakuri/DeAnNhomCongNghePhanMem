@@ -13,7 +13,10 @@ datasource db {
 }
 
 enum TrangThai {
-    UNAPPROVE
+    UNFINISHED
+    FINISHED
+    WAITING
+    UNAPPROVED
     APPROVED
 }
 
@@ -37,7 +40,7 @@ model BanTin {
     NoiDung       String @db.Text
 
     PreviewImage String    @db.Text
-    TrangThai    TrangThai @default(UNAPPROVE)
+    TrangThai    TrangThai @default(UNFINISHED)
     NgayDang     DateTime  @default(now()) @db.Timestamp(3)
     LuoiXem      Int       @default(0) @db.Int
 
@@ -75,6 +78,8 @@ model BanTinYeuThich {
     MaNguoiDung String    @db.VarChar(32)
     NguoiDung   NguoiDung @relation(fields: [MaNguoiDung], references: [MaNguoiDung])
 
+    FavoredAt DateTime @default(now()) @db.Timestamp(3)
+
     @@id([MaBanTin, MaNguoiDung])
     @@index([MaBanTin, MaNguoiDung])
 }
@@ -100,6 +105,7 @@ model TaiKhoan {
     NgaySinh   DateTime? @db.DateTime()
     SoDT       String?   @db.VarChar(11)
     DiaChi     String?   @db.VarChar(255)
+    Banned     Boolean   @default(false) @db.TinyInt
 
     VaiTro Role @default(KhachHang)
 
@@ -199,8 +205,8 @@ model ThongBao {
     DaDoc      Boolean  @default(false) @db.TinyInt
     CreateAt   DateTime @default(now()) @db.Timestamp(3)
 
-    MaBanTin String @db.VarChar(36)
-    BanTin   BanTin @relation(fields: [MaBanTin], references: [MaBanTin])
+    MaBanTin String  @db.VarChar(36)
+    BanTin   BanTin? @relation(fields: [MaBanTin], references: [MaBanTin])
 
     MaNguoiDung String    @db.VarChar(32)
     NguoiDung   NguoiDung @relation(fields: [MaNguoiDung], references: [MaNguoiDung])

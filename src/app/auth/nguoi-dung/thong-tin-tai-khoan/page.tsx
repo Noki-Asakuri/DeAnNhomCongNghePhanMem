@@ -1,10 +1,10 @@
 "use client";
 
-import { useUser, UserProfile } from "@clerk/nextjs";
-import { dark } from "@clerk/themes";
-
-import { Spinner } from "@nextui-org/react";
 import { useTheme } from "next-themes";
+
+import { UserProfile, useUser } from "@clerk/nextjs";
+import { dark } from "@clerk/themes";
+import { Spinner } from "@nextui-org/react";
 
 export default function UserProfilePage() {
 	const { isLoaded } = useUser();
@@ -14,7 +14,7 @@ export default function UserProfilePage() {
 		<div className="flex h-full w-full items-start justify-center">
 			{!isLoaded ? (
 				<div className="flex h-full w-full flex-1 items-center justify-center">
-					<Spinner label="Loading..." color="primary" />
+					<Spinner label="Đang tải..." color="primary" />
 				</div>
 			) : (
 				<UserProfile

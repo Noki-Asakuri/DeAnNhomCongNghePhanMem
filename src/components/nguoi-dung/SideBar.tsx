@@ -1,10 +1,10 @@
 "use client";
 
-import { useClerk } from "@clerk/nextjs";
-
-import { Button, Card, Divider, Popover, PopoverContent, PopoverTrigger, type PropsOf } from "@nextui-org/react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+
+import { useClerk } from "@clerk/nextjs";
+import { Button, Card, Divider, Popover, PopoverContent, PopoverTrigger, type PropsOf } from "@nextui-org/react";
 
 import { BookMarked, History, LogOut, User2, UserCog } from "lucide-react";
 import { useTransition } from "react";
@@ -19,11 +19,11 @@ export const NguoiDungSideBar = () => {
 	return (
 		<Card className="h-max w-1/5 flex-col items-center justify-start gap-2 p-2">
 			<TabItem currentPath={currentPath} href={"/auth/nguoi-dung/thong-tin-tai-khoan"} startContent={<User2 size={16} />}>
-				Thông tin Tài Khoản
+				Thông tin tài khoản
 			</TabItem>
 
 			<TabItem currentPath={currentPath} href={"/auth/nguoi-dung/thong-tin-nguoi-dung"} startContent={<UserCog size={16} />}>
-				Thông tin Người Dùng
+				Thông tin người dùng
 			</TabItem>
 
 			<TabItem currentPath={currentPath} href={"/auth/nguoi-dung/tin-yeu-thich"} startContent={<BookMarked size={16} />}>

@@ -1,6 +1,17 @@
 "use client";
 
-import { useClerk, useUser } from "@clerk/nextjs";
+import { api } from "@/utils/trpc/react";
+
+import { ThemeSwitcher } from "../theme-switcher";
+import { NotificationDropdown } from "./NotificationDropdown";
+import { SearchBar } from "./SearchBar";
+
+import dynamic from "next/dynamic";
+import Image from "next/image";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+
+import { useClerk } from "@clerk/nextjs";
 import {
 	Avatar,
 	Divider,
@@ -14,17 +25,12 @@ import {
 	NavbarContent,
 } from "@nextui-org/react";
 
-import { BookMarked, History, LogOut, User2, UserCog } from "lucide-react";
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { BookMarked, History, LogOut, Newspaper, User2, UserCog, Users } from "lucide-react";
 
-import { ThemeSwitcher } from "../theme-switcher";
-import { NotificationDropdown } from "./NotificationDropdown";
-import { RealTime } from "./Realtime";
-import { SearchBar } from "./SearchBar";
+const RealTime = dynamic(() => import("./Realtime").then((m) => m.RealTime), { ssr: false });
 
 const MainNavbar = () => {
-	const { isSignedIn, user, isLoaded } = useUser();
+	const user = api.common.getUser.useQuery(undefined, { refetchOnMount: false, refetchOnWindowFocus: false });
 	const { signOut } = useClerk();
 
 	const router = useRouter();
@@ -33,10 +39,12 @@ const MainNavbar = () => {
 	return (
 		<Navbar shouldHideOnScroll isBordered classNames={{ wrapper: "max-w-6xl" }}>
 			<NavbarBrand className="flex h-8 items-center space-x-4 text-small">
-				<h1 className="text-2xl font-bold text-inherit">
-					<Link href="/">Bản Tin 24H</Link>
-				</h1>
+				<Link href="/" className="flex items-center justify-center gap-1">
+					<Image alt="Bản tin 24H icon" src={"/favicon.png"} width={32} height={32} />
+					<h1 className="text-2xl font-bold text-inherit">Bản Tin 24H</h1>
+				</Link>
 				<Divider orientation="vertical" />
+
 				<RealTime />
 			</NavbarBrand>
 
@@ -45,42 +53,67 @@ const MainNavbar = () => {
 
 				<ThemeSwitcher />
 
-				{isLoaded && isSignedIn && <NotificationDropdown />}
+				{user.isSuccess && user.data && <NotificationDropdown />}
 
 				<Dropdown placement="bottom-end">
 					<DropdownTrigger>
 						<Avatar
 							isBordered
+							showFallback
 							as="button"
 							className="transition-transform"
-							name={user ? user.username! : undefined}
-							src={user ? user.imageUrl : undefined}
+							name={user.data?.TenTaiKhoan || undefined}
+							src={user.data?.AnhDaiDien || undefined}
 						/>
 					</DropdownTrigger>
 
-					{isLoaded && isSignedIn && (
-						<DropdownMenu aria-label="Profile Actions" variant="flat">
+					{user.isSuccess && user.data && (
+						<DropdownMenu aria-label="Profile Actions" variant="flat" closeOnSelect={false}>
 							<DropdownSection showDivider>
 								<DropdownItem key="profile" className="h-14 gap-2">
 									<p className="font-semibold">Đăng nhập bằng</p>
-									<p className="font-semibold">{user.emailAddresses[0]?.emailAddress}</p>
+									<p className="font-semibold">{user.data?.Email}</p>
 								</DropdownItem>
 							</DropdownSection>
 
+							{["QuanTriVien", "TongBienTap", "NhanVien"].includes(user.data.VaiTro) ? (
+								<DropdownSection title="Quản Lý" showDivider>
+									<DropdownItem key="newsManage" startContent={<Newspaper size={16} />}>
+										<Link className="block w-full text-left" href="/admin/manage/news">
+											Quản lý bản tin
+										</Link>
+									</DropdownItem>
+
+									{user.data.VaiTro !== "NhanVien" ? (
+										<DropdownItem key="userManage" startContent={<Users size={16} />}>
+											<Link className="block w-full text-left" href="/admin/manage/users">
+												Quản lý người dùng
+											</Link>
+										</DropdownItem>
+									) : (
+										// eslint-disable-next-line @typescript-eslint/no-explicit-any
+										(undefined as any)
+									)}
+								</DropdownSection>
+							) : (
+								// eslint-disable-next-line @typescript-eslint/no-explicit-any
+								(undefined as any)
+							)}
+
 							<DropdownSection title="Cài đặt" showDivider>
-								<DropdownItem key="config" startContent={<User2 size={16} />}>
+								<DropdownItem key="accountSettings" startContent={<User2 size={16} />}>
 									<Link className="block w-full text-left" href="/auth/nguoi-dung/thong-tin-tai-khoan">
 										Cài đặt tài khoản
 									</Link>
 								</DropdownItem>
 
-								<DropdownItem key="config" startContent={<UserCog size={16} />}>
+								<DropdownItem key="userSettings" startContent={<UserCog size={16} />}>
 									<Link className="block w-full text-left" href="/auth/nguoi-dung/thong-tin-nguoi-dung">
 										Cài đặt người dùng
 									</Link>
 								</DropdownItem>
 
-								<DropdownItem key="bookmark" startContent={<BookMarked size={16} />}>
+								<DropdownItem key="favorite" startContent={<BookMarked size={16} />}>
 									<Link className="block w-full text-left" href="/auth/nguoi-dung/tin-yeu-thich">
 										Tin yêu thích
 									</Link>
@@ -102,14 +135,14 @@ const MainNavbar = () => {
 												.catch(() => router.refresh());
 										}}
 									>
-										Đăng Xuất
+										Đăng xuất
 									</button>
 								</DropdownItem>
 							</DropdownSection>
 						</DropdownMenu>
 					)}
 
-					{(!isLoaded || !isSignedIn) && (
+					{(user.isLoading || !user.data) && (
 						<DropdownMenu aria-label="Login Actions" variant="flat">
 							<DropdownItem key="login" color="primary">
 								<Link href={{ pathname: "/auth/dang-nhap", query: { redirect_url: pathname } }} className="block w-full">

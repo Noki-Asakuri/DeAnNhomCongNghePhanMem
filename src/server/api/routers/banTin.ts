@@ -1,6 +1,8 @@
-import z from "zod";
-
 import { authProcedure, createTRPCRouter, publicProcedure } from "../trpc";
+
+import type { Prisma } from "@prisma/client";
+
+import z from "zod";
 
 export const banTinRouter = createTRPCRouter({
 	yeuThich: authProcedure.input(z.object({ maBanTin: z.string() })).mutation(async ({ ctx, input }) => {
@@ -18,18 +20,21 @@ export const banTinRouter = createTRPCRouter({
 			data: { MaBanTin: input.maBanTin, MaNguoiDung: ctx.userId },
 		});
 	}),
+
 	checkYeuThich: publicProcedure.input(z.object({ maBanTin: z.string() })).query(async ({ ctx, input }) => {
 		if (!ctx.userId) return false;
 		return !!(await ctx.prisma.banTinYeuThich.count({ where: { MaBanTin: input.maBanTin, MaNguoiDung: ctx.userId } }));
 	}),
 
-	layBanTinXemNhieu: publicProcedure.query(async ({ ctx }) => {
+	layBanTinXemNhieu: publicProcedure.input(z.object({ excludeID: z.string() })).query(async ({ ctx, input }) => {
 		return await ctx.prisma.banTin.findMany({
+			where: { NOT: { MaBanTin: input.excludeID } },
 			take: 5,
 			orderBy: { LuoiXem: "desc" },
 			include: { DanhMuc: { select: { TenDanhMuc: true } }, _count: { select: { DanhGia: true } } },
 		});
 	}),
+
 	markAsRead: authProcedure.input(z.object({ maBanTin: z.string() })).mutation(async ({ ctx, input }) => {
 		const checkIsRead = await ctx.prisma.banTinDaDoc.count({ where: { MaBanTin: input.maBanTin, MaNguoiDung: ctx.userId } });
 
@@ -65,4 +70,48 @@ export const banTinRouter = createTRPCRouter({
 			},
 		});
 	}),
+
+	searchBanTin: publicProcedure
+		.input(
+			z.object({
+				pageNum: z.number().min(0, "Số trang phải lớn hơn 0"),
+				perPage: z.number().min(1, "Số lượng từng trang phải lớn hơn 1"),
+				query: z
+					.object({
+						value: z.string().optional(),
+						author: z.string().optional(),
+						category: z.string().optional(),
+					})
+					.optional(),
+			}),
+		)
+		.query(async ({ ctx, input }) => {
+			const trimValue = (input.query?.value || "").trim();
+
+			const search: Prisma.BanTinWhereInput = {
+				AND: [
+					input.query && input.query.value
+						? { OR: [{ TenBanTin: { contains: trimValue } }, { NoiDungTomTat: { contains: trimValue } }] }
+						: {},
+					input.query && input.query.author ? { MaNhanVien: input.query.author } : {},
+					input.query && input.query.category ? { MaDanhMuc: input.query.category } : {},
+				],
+			};
+
+			const [newsCount, newsData] = await ctx.prisma.$transaction([
+				ctx.prisma.banTin.count({ where: search }),
+				ctx.prisma.banTin.findMany({
+					where: search,
+					include: {
+						DanhMuc: true,
+						NhanVien: { include: { TaiKhoan: { select: { AnhDaiDien: true, TenTaiKhoan: true } } } },
+						_count: { select: { DanhGia: true } },
+					},
+					take: input.perPage,
+					skip: Math.abs(input.pageNum - 1) * input.perPage,
+				}),
+			]);
+
+			return { data: newsData, count: newsCount };
+		}),
 });

@@ -5,14 +5,14 @@ import { dayjs } from "@/utils/dayjs";
 import { api } from "@/utils/trpc/react";
 import type { RouterOutputs } from "@/utils/trpc/shared";
 
+import { DanhGiaTextArea } from "./DanhGiaTextArea";
+
 import type { User } from "@clerk/clerk-sdk-node";
 import { Avatar, Button, Card, CardBody, Spacer, Spinner } from "@nextui-org/react";
-import { Flag, MessagesSquare, Reply } from "lucide-react";
 
+import { Flag, MessagesSquare, Reply } from "lucide-react";
 import { Fragment, useState } from "react";
 import toast from "react-hot-toast";
-
-import { DanhGiaTextArea } from "./DanhGiaTextArea";
 
 type ParamsType = {
 	banTin: NonNullable<Awaited<ReturnType<typeof layBanTin>>>;
@@ -34,7 +34,7 @@ export const DanhGiaBanTin = ({ banTin, userJSON }: ParamsType) => {
 	if (isLoading) {
 		return (
 			<div className="flex items-center justify-center pt-4">
-				<Spinner label="Loading..." color="primary" />
+				<Spinner label="Đang tải..." color="primary" />
 			</div>
 		);
 	}
@@ -208,7 +208,7 @@ const DanhGia = ({ danhGia, refetch, user: clerkUser, isTraLoi }: DanhGiaParams)
 									<>
 										<Spacer y={2} />
 										<blockquote className="flex flex-col gap-4 border-l-2 border-default-500 pl-4">
-											<Spinner color="primary" label="Loading..." />
+											<Spinner color="primary" label="Đang tải..." />
 										</blockquote>
 									</>
 								)}

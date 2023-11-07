@@ -4,12 +4,13 @@ import { getUrl } from "@/utils/path";
 import { api } from "@/utils/trpc/react";
 
 import { Button, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger, Link } from "@nextui-org/react";
+
 import { Copy, Heart, MoreHorizontal, Twitter } from "lucide-react";
 import { toast } from "react-hot-toast";
 
-type PropsParms = { duongDanBanTin: string; tenBanTin: string; host: string; maBanTin: string };
+type PropsParms = { duongDanBanTin: string; tenBanTin: string; host: string; maBanTin: string; refetch?: () => Promise<unknown> };
 
-export const ChiaSeDropdown = ({ duongDanBanTin, tenBanTin, maBanTin, host }: PropsParms) => {
+export const ChiaSeDropdown = ({ duongDanBanTin, tenBanTin, maBanTin, host, refetch }: PropsParms) => {
 	const tweetUrl = new URL("https://twitter.com/intent/tweet");
 
 	tweetUrl.searchParams.set("text", tenBanTin);
@@ -19,15 +20,10 @@ export const ChiaSeDropdown = ({ duongDanBanTin, tenBanTin, maBanTin, host }: Pr
 		data,
 		isLoading,
 		refetch: recheckYeuThich,
-	} = api.banTin.checkYeuThich.useQuery(
-		{ maBanTin: maBanTin },
-		{
-			refetchOnReconnect: false,
-			refetchOnWindowFocus: false,
-		},
-	);
+	} = api.banTin.checkYeuThich.useQuery({ maBanTin: maBanTin }, { refetchOnReconnect: false, refetchOnWindowFocus: false });
+
 	const yeuThich = api.banTin.yeuThich.useMutation({
-		onSuccess: async () => await recheckYeuThich(),
+		onSuccess: async () => await Promise.all([recheckYeuThich(), refetch ? refetch() : undefined]),
 		onError: ({ message }) => toast.error("Lỗi: " + message),
 	});
 
@@ -43,25 +39,23 @@ export const ChiaSeDropdown = ({ duongDanBanTin, tenBanTin, maBanTin, host }: Pr
 						<Heart size={20} className={data ? "fill-red-600 stroke-red-600" : undefined} />
 					)
 				}
-				onClick={() => {
-					yeuThich.mutate({ maBanTin: maBanTin });
-				}}
+				onPress={() => yeuThich.mutate({ maBanTin: maBanTin })}
 			/>
 
-			<Dropdown placement="bottom-end">
+			<Dropdown showArrow>
 				<DropdownTrigger>
 					<Button variant="light" radius="full" isIconOnly startContent={<MoreHorizontal size={20} />} />
 				</DropdownTrigger>
 
 				<DropdownMenu aria-label="Share Actions" variant="flat">
-					<DropdownItem className="p-0">
+					<DropdownItem startContent={<Copy size={16} />}>
 						<Button
+							size="sm"
 							variant="light"
-							startContent={<Copy size={16} />}
-							className="w-full"
-							onClick={() => {
+							className="w-full justify-start p-0 data-[hover=true]:bg-transparent"
+							onPress={() => {
 								const handler = async () => {
-									await window.navigator.clipboard.writeText(duongDanBanTin);
+									await window.navigator.clipboard.writeText(getUrl(host, duongDanBanTin, true));
 									toast.success("Copy đường dẫn thành công!");
 								};
 								handler().catch(() => {});
@@ -71,15 +65,15 @@ export const ChiaSeDropdown = ({ duongDanBanTin, tenBanTin, maBanTin, host }: Pr
 						</Button>
 					</DropdownItem>
 
-					<DropdownItem className="p-0">
+					<DropdownItem startContent={<Twitter size={16} />}>
 						<Button
+							size="sm"
 							as={Link}
 							isExternal
 							showAnchorIcon
 							href={tweetUrl.toString()}
 							variant="light"
-							className="w-full"
-							startContent={<Twitter size={16} />}
+							className="w-full justify-start p-0 data-[hover=true]:bg-transparent"
 						>
 							Chia sẽ với X
 						</Button>

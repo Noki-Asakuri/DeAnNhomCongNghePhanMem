@@ -1,20 +1,16 @@
 import { BanTin } from "@/components/nguoi-dung/banTin";
+import { api } from "@/utils/trpc/server";
 
-import { currentUser } from "@clerk/nextjs";
+import { headers } from "next/headers";
+
 import { History } from "lucide-react";
 
-const layBanTinDaXem = async (maNguoiDung: string) => {
-	return await prisma.banTinDaDoc.findMany({
-		where: { MaNguoiDung: maNguoiDung },
-	});
-};
-
 export default async function UserProfilePage() {
-	const user = await currentUser();
-	const data = await layBanTinDaXem(user!.id);
+	const host = headers().get("host") as string;
+	const data = await api.user.getHistoris.query({ pageNum: 1, perPage: 6 });
 
 	return (
-		<BanTin danhSachBanTin={data}>
+		<BanTin initialHistories={data} host={host}>
 			<History size={30} /> Lịch sử xem
 		</BanTin>
 	);

@@ -4,12 +4,12 @@ import type { layBanTin } from "@/app/bantin/[tenbanTin_maBanTin]/data";
 import { getUrl } from "@/utils/path";
 import { api } from "@/utils/trpc/react";
 
-import { Button, ButtonGroup } from "@nextui-org/react";
-import { ArrowLeft, Heart, Link as LinkIcon, Twitter } from "lucide-react";
-
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import { Button, ButtonGroup } from "@nextui-org/react";
+
+import { ArrowLeft, Heart, Link as LinkIcon, Twitter } from "lucide-react";
 import { toast } from "react-hot-toast";
 
 type ParamsType = {

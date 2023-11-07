@@ -6,14 +6,15 @@
  * TL;DR - This is where all the tRPC server stuff is created and plugged in. The pieces you will
  * need to use are documented accordingly near the end.
  */
+import { prisma } from "@/server/db/prisma";
+
+import { type NextRequest } from "next/server";
+
 import { auth } from "@clerk/nextjs";
 import { TRPCError, initTRPC } from "@trpc/server";
 
-import { type NextRequest } from "next/server";
 import superjson from "superjson";
 import { ZodError } from "zod";
-
-import { prisma } from "@/server/db/prisma";
 
 /**
  * 1. CONTEXT
@@ -107,15 +108,15 @@ const isAuthed = t.middleware(({ next, ctx }) => {
 });
 
 const isStaff = isAuthed.unstable_pipe(async ({ next, ctx }) => {
-	const data = await ctx.prisma.taiKhoan.findUnique({ where: { MaTaiKhoan: ctx.userId } });
+	const user = await ctx.prisma.taiKhoan.findUnique({ where: { MaTaiKhoan: ctx.userId } });
 
-	if (!data)
+	if (!user)
 		throw new TRPCError({
 			code: "INTERNAL_SERVER_ERROR",
 			message: "Vui lòng liên hệ với quản trị viên nếu bạn gặp lỗi này",
 		});
 
-	if (data.VaiTro !== "NhanVien" && data.VaiTro !== "QuanTriVien" && data.VaiTro !== "TongBienTap")
+	if (user.VaiTro !== "NhanVien" && user.VaiTro !== "QuanTriVien" && user.VaiTro !== "TongBienTap")
 		throw new TRPCError({
 			code: "FORBIDDEN",
 			message: "Bạn không có quyền thực hiện hành động này. Yêu cầu chức vụ: Nhân Viên | Quản trị viên | Tổng Biên Tập",
@@ -125,15 +126,15 @@ const isStaff = isAuthed.unstable_pipe(async ({ next, ctx }) => {
 });
 
 const isAdmin = isStaff.unstable_pipe(async ({ next, ctx }) => {
-	const data = await ctx.prisma.taiKhoan.findUnique({ where: { MaTaiKhoan: ctx.userId } });
+	const user = await ctx.prisma.taiKhoan.findUnique({ where: { MaTaiKhoan: ctx.userId } });
 
-	if (!data)
+	if (!user)
 		throw new TRPCError({
 			code: "INTERNAL_SERVER_ERROR",
 			message: "Vui lòng liên hệ với quản trị viên nếu bạn gặp lỗi này",
 		});
 
-	if (data.VaiTro !== "QuanTriVien" && data.VaiTro !== "TongBienTap")
+	if (user.VaiTro !== "QuanTriVien" && user.VaiTro !== "TongBienTap")
 		throw new TRPCError({
 			code: "FORBIDDEN",
 			message: "Bạn không có quyền thực hiện hành động này. Yêu cầu chức vụ: Quản trị viên | Tổng Biên Tập",

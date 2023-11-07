@@ -1,5 +1,5 @@
-export const dynamic = "force-dynamic";
+"use client";
 
 export default function LoadingLayout() {
-	return <div></div>;
+	return <div className="container py-4"></div>;
 }

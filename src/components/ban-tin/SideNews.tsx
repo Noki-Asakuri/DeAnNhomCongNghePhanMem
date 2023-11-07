@@ -1,14 +1,19 @@
 "use client";
 
 import { api } from "@/utils/trpc/react";
-import { Spinner } from "@nextui-org/react";
+
 import { BanTinHot } from "../HomePage/BanTinHot";
 
-export const SideNews = () => {
-	const { data, isLoading, isSuccess } = api.banTin.layBanTinXemNhieu.useQuery(undefined, {
-		refetchOnReconnect: false,
-		refetchOnWindowFocus: false,
-	});
+import { Spinner } from "@nextui-org/react";
+
+export const SideNews = ({ excludeID }: { excludeID: string }) => {
+	const { data, isLoading, isSuccess } = api.banTin.layBanTinXemNhieu.useQuery(
+		{ excludeID },
+		{
+			refetchOnReconnect: false,
+			refetchOnWindowFocus: false,
+		},
+	);
 
 	return (
 		<section className="h-max w-1/3">

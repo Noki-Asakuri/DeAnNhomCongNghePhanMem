@@ -1,17 +1,17 @@
-import type { Metadata } from "next";
-
-import { headers } from "next/headers";
-import NextLink from "next/link";
-import { notFound } from "next/navigation";
-
 import { DanhGiaBanTin } from "@/components/ban-tin/DanhGia";
 import { SideNews } from "@/components/ban-tin/SideNews";
 import { ThanhCongCu } from "@/components/ban-tin/ThanhCongCu";
 import { Link } from "@/components/common/Link";
 
-import { currentUser } from "@clerk/nextjs";
 import { layBanTin } from "./data";
 import { NoiDung } from "./noiDung";
+
+import type { Metadata } from "next";
+import { headers } from "next/headers";
+import NextLink from "next/link";
+import { notFound } from "next/navigation";
+
+import { currentUser } from "@clerk/nextjs";
 
 type Params = { params: { tenbanTin_maBanTin: string } };
 export const revalidate = 600;
@@ -69,7 +69,7 @@ export default async function BanTinPage({ params: { tenbanTin_maBanTin } }: Par
 						<DanhGiaBanTin banTin={banTin} userJSON={user ? JSON.stringify(user) : null} />
 					</section>
 
-					<SideNews />
+					<SideNews excludeID={banTin.MaBanTin} />
 				</div>
 			</div>
 		</>
