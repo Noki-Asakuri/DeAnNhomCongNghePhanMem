@@ -6,7 +6,7 @@ export const commonRouter = createTRPCRouter({
 	getUser: publicProcedure.query(async ({ ctx }) => {
 		if (!ctx.userId) return null;
 
-		const user = await prisma.taiKhoan.findFirst({ where: { MaTaiKhoan: ctx.userId } });
+		const user = await ctx.prisma.taiKhoan.findFirst({ where: { MaTaiKhoan: ctx.userId } });
 		if (!user) {
 			throw new TRPCError({
 				code: "NOT_FOUND",
