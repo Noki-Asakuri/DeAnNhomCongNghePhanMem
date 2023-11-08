@@ -65,7 +65,7 @@ export default async function BanTinPage({ params: { tenbanTin_maBanTin } }: Par
 							<span className="text-xl font-bold">{banTin.NhanVien.TaiKhoan.TenTaiKhoan}</span>
 						</div>
 
-						<ThanhCongCu banTin={banTin} host={host as string} />
+						<ThanhCongCu banTin={banTin} host={host!} />
 						<DanhGiaBanTin banTin={banTin} userJSON={user ? JSON.stringify(user) : null} />
 					</section>
 

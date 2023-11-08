@@ -284,10 +284,10 @@ export const NewsTable = ({ initialNews, user, currentUserId, initialCategories,
 							}}
 						>
 							{(item) => (
-								<SelectItem key={item.MaTaiKhoan} textValue={item.TenTaiKhoan || undefined}>
+								<SelectItem key={item.MaTaiKhoan} textValue={item.TenTaiKhoan ?? undefined}>
 									<div className="flex items-center gap-2">
 										<Avatar
-											alt={item.TenTaiKhoan || undefined}
+											alt={item.TenTaiKhoan ?? undefined}
 											className="flex-shrink-0"
 											size="sm"
 											src={item.AnhDaiDien}

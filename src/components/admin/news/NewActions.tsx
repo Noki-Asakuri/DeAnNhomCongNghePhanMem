@@ -4,7 +4,7 @@ import { api } from "@/utils/trpc/react";
 import type { RouterOutputs } from "@/utils/trpc/shared";
 
 import type { newType } from "./NewsTable";
-import { allNewsAction } from "./data";
+import type { allNewsAction } from "./data";
 
 import {
 	Button,

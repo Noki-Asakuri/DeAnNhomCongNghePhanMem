@@ -9,7 +9,7 @@ import { SearchBar } from "./SearchBar";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 
 import { useClerk } from "@clerk/nextjs";
 import {
@@ -31,9 +31,8 @@ const RealTime = dynamic(() => import("./Realtime").then((m) => m.RealTime), { s
 
 const MainNavbar = () => {
 	const user = api.common.getUser.useQuery(undefined, { refetchOnMount: false, refetchOnWindowFocus: false });
-	const { signOut } = useClerk();
 
-	const router = useRouter();
+	const { signOut } = useClerk();
 	const pathname = usePathname();
 
 	return (
@@ -62,8 +61,8 @@ const MainNavbar = () => {
 							showFallback
 							as="button"
 							className="transition-transform"
-							name={user.data?.TenTaiKhoan || undefined}
-							src={user.data?.AnhDaiDien || undefined}
+							name={user.data?.TenTaiKhoan ?? undefined}
+							src={user.data?.AnhDaiDien}
 						/>
 					</DropdownTrigger>
 
@@ -129,11 +128,8 @@ const MainNavbar = () => {
 								<DropdownItem key="logout" color="danger" startContent={<LogOut size={16} />}>
 									<button
 										className="w-full text-left"
-										onClick={() => {
-											signOut()
-												.then(() => router.refresh())
-												.catch(() => router.refresh());
-										}}
+										// eslint-disable-next-line @typescript-eslint/no-misused-promises
+										onClick={async () => await signOut().then(() => user.refetch())}
 									>
 										Đăng xuất
 									</button>

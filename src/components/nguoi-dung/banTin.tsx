@@ -168,7 +168,7 @@ const BanTinItem = ({ banTin, refetch, host }: { banTin: BanTinType; host: strin
 					<div className="flex items-center justify-center gap-2">
 						<span className="font-semibold text-danger">{banTin.BanTin.DanhMuc.TenDanhMuc}</span>
 						<span> - </span>
-						<span>{dayjs(banTin.FavoredAt || banTin.ReadAt).fromNow()}</span>
+						<span>{dayjs(banTin.FavoredAt ?? banTin.ReadAt).fromNow()}</span>
 						<span> - </span>
 						<span className="flex items-center gap-2">
 							<MessagesSquare size={20} /> {banTin.BanTin._count.DanhGia}

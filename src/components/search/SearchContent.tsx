@@ -42,11 +42,12 @@ export const SearchContent = ({
 		category: string;
 		author: string;
 	}>({
-		value: searchParams.get("query") || "",
+		value: searchParams.get("query") ?? "",
 		author: "",
 		category: "",
 	});
-	const [page, setPage] = useState(Number(searchParams.get("page") || "1"));
+
+	const [page, setPage] = useState(Number(searchParams.get("page") ?? "1"));
 	const [rowsPerPage, setRowPerPage] = useState<(typeof perPage)[number]>(6);
 
 	const { data: searchData, isRefetching } = api.banTin.searchBanTin.useQuery(
@@ -70,7 +71,7 @@ export const SearchContent = ({
 
 	const pages = Math.ceil(searchData!.count / rowsPerPage);
 
-	const updatePage = useCallback((page: number, updateUrl: boolean = true) => {
+	const updatePage = useCallback((page: number, updateUrl = true) => {
 		setPage(page);
 
 		searchParams.set("page", (page + 1).toString());

@@ -53,12 +53,9 @@ export const ChiaSeDropdown = ({ duongDanBanTin, tenBanTin, maBanTin, host, refe
 							size="sm"
 							variant="light"
 							className="w-full justify-start p-0 data-[hover=true]:bg-transparent"
-							onPress={() => {
-								const handler = async () => {
-									await window.navigator.clipboard.writeText(getUrl(host, duongDanBanTin, true));
-									toast.success("Copy đường dẫn thành công!");
-								};
-								handler().catch(() => {});
+							onPress={async () => {
+								await window.navigator.clipboard.writeText(getUrl(host, duongDanBanTin, true));
+								toast.success("Copy đường dẫn thành công!");
 							}}
 						>
 							Copy đường dẫn

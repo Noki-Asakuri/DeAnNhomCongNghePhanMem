@@ -5,14 +5,15 @@ import { SideBar } from "@/components/HomePage/Sidebar";
 import { getBanTinHot, getDanhMuc, getRandomBanTin } from "@/components/HomePage/data";
 import { Divider } from "@/components/common/Divider";
 
-import { Newspaper } from "lucide-react";
 import { headers } from "next/headers";
+
+import { Newspaper } from "lucide-react";
 
 export const dynamic = "force-dynamic",
 	fetchCache = "default-no-store";
 
 export default async function Home() {
-	const host = headers().get("host") as string;
+	const host = headers().get("host")!;
 	const [banTin, banTinRandom, danhMuc] = await Promise.all([getBanTinHot(), getRandomBanTin(), getDanhMuc()]);
 
 	return (

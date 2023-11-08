@@ -6,7 +6,7 @@ import { headers } from "next/headers";
 import { BookMarked } from "lucide-react";
 
 export default async function UserProfilePage() {
-	const host = headers().get("host") as string;
+	const host = headers().get("host")!;
 	const data = await api.user.getFavorites.query({ pageNum: 1, perPage: 6 });
 
 	return (

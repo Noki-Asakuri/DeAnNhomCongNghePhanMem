@@ -8,7 +8,7 @@ import { Divider } from "@nextui-org/react";
 type SearchParams = { searchParams: { query?: string; author?: string } };
 
 export default async function SearchPage({ searchParams }: SearchParams) {
-	const host = headers().get("host") as string;
+	const host = headers().get("host")!;
 	const [banTin, categories, authors] = await Promise.all([
 		api.banTin.searchBanTin.query({ pageNum: 1, perPage: 6, query: { value: searchParams.query } }),
 		api.common.getCategories.query(),

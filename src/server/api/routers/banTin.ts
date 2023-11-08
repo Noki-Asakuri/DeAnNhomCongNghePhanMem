@@ -86,15 +86,13 @@ export const banTinRouter = createTRPCRouter({
 			}),
 		)
 		.query(async ({ ctx, input }) => {
-			const trimValue = (input.query?.value || "").trim();
+			const trimValue = (input.query?.value ?? "").trim();
 
 			const search: Prisma.BanTinWhereInput = {
 				AND: [
-					input.query && input.query.value
-						? { OR: [{ TenBanTin: { contains: trimValue } }, { NoiDungTomTat: { contains: trimValue } }] }
-						: {},
-					input.query && input.query.author ? { MaNhanVien: input.query.author } : {},
-					input.query && input.query.category ? { MaDanhMuc: input.query.category } : {},
+					input.query?.value ? { OR: [{ TenBanTin: { contains: trimValue } }, { NoiDungTomTat: { contains: trimValue } }] } : {},
+					input.query?.author ? { MaNhanVien: input.query.author } : {},
+					input.query?.category ? { MaDanhMuc: input.query.category } : {},
 				],
 			};
 

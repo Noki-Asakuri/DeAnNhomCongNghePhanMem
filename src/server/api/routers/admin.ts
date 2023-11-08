@@ -1,4 +1,4 @@
-import { allNewsAction } from "@/components/admin/news/data";
+import type { allNewsAction } from "@/components/admin/news/data";
 import { disAllowedRoles } from "@/components/admin/user/data";
 import { env } from "@/env.mjs";
 
@@ -46,7 +46,7 @@ export const adminRouter = createTRPCRouter({
 		)
 		.query(async ({ ctx, input }) => {
 			const nullPhoneNumbers = ["Không Có".toLowerCase(), "null", "undefined"];
-			const trimmedValue = (input.query?.value || "").trim();
+			const trimmedValue = (input.query?.value ?? "").trim();
 
 			const search: Prisma.TaiKhoanWhereInput = {
 				AND: [
@@ -313,7 +313,7 @@ export const adminRouter = createTRPCRouter({
 				});
 			}
 
-			const trimmedValue = (input.query?.value || "").trim();
+			const trimmedValue = (input.query?.value ?? "").trim();
 
 			const search: Prisma.BanTinWhereInput = {
 				AND: [
