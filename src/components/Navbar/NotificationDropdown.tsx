@@ -45,7 +45,7 @@ const Notification = ({ data }: { data: RouterOutputs["user"]["getNotifications"
 	return (
 		<div className="flex flex-col gap-2">
 			<div className="flex items-center justify-between">
-				<span>{data.BanTin.DanhMuc.TenDanhMuc}</span>
+				<span>{data.BanTin?.DanhMuc.TenDanhMuc}</span>
 				<span>{dayjs(data.CreateAt).fromNow()}</span>
 			</div>
 
