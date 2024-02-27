@@ -22,44 +22,16 @@ import { ZodError } from "zod";
  * This section defines the "contexts" that are available in the backend API.
  *
  * These allow you to access things when processing a request, like the database, the session, etc.
- */
-
-interface CreateContextOptions {
-	headers: Headers;
-}
-
-/**
- * This helper generates the "internals" for a tRPC context. If you need to use it, you can export
- * it from here.
  *
- * Examples of things you may need it for:
- * - testing, so we don't have to mock Next.js' req/res
- * - tRPC's `createSSGHelpers`, where we don't have req/res
+ * This helper generates the "internals" for a tRPC context. The API handler and RSC clients each
+ * wrap this and provides the required context.
  *
- * @see https://create.t3.gg/en/usage/trpc#-serverapitrpcts
+ * @see https://trpc.io/docs/server/context
  */
-export const createInnerTRPCContext = (opts: CreateContextOptions) => {
+export const createTRPCContext = async (opts: { headers: Headers }) => {
 	const { userId } = auth();
 
-	return {
-		headers: opts.headers,
-		prisma,
-		userId,
-	};
-};
-
-/**
- * This is the actual context you will use in your router. It will be used to process every request
- * that goes through your tRPC endpoint.
- *
- * @see https://trpc.io/docs/context
- */
-export const createTRPCContext = (opts: { req: NextRequest }) => {
-	// Fetch stuff that depends on the request
-
-	return createInnerTRPCContext({
-		headers: opts.req.headers,
-	});
+	return { ...opts, prisma, userId };
 };
 
 /**
@@ -154,3 +126,4 @@ export const publicProcedure = t.procedure;
 export const authProcedure = t.procedure.use(isAuthed);
 export const staffProcedure = t.procedure.use(isStaff);
 export const adminProcedure = t.procedure.use(isAdmin);
+

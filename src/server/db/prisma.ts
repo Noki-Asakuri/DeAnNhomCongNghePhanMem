@@ -5,21 +5,19 @@ import { Client } from "@planetscale/database";
 import { PrismaPlanetScale } from "@prisma/adapter-planetscale";
 import { PrismaClient } from "@prisma/client";
 
-declare global {
-	// eslint-disable-next-line no-var
-	var prisma: PrismaClient;
-}
+const psClient = new Client({ url: env.DATABASE_URL });
 
-const client = new Client({ url: env.DATABASE_URL, fetch });
-const adapter = new PrismaPlanetScale(client);
-
-export const prisma =
-	global.prisma ||
+const createPrismaClient = () =>
 	new PrismaClient({
-		log: process.env.NODE_ENV === "development" ? ["query", "error", "warn"] : ["error"],
-		adapter,
+		log: env.NODE_ENV === "development" ? ["query", "error", "warn"] : ["error"],
+		adapter: new PrismaPlanetScale(psClient),
 	});
 
-if (process.env.NODE_ENV !== "production") {
-	global.prisma = prisma;
-}
+const globalForPrisma = globalThis as unknown as {
+	prisma: ReturnType<typeof createPrismaClient> | undefined;
+};
+
+export const prisma = globalForPrisma.prisma ?? createPrismaClient();
+
+if (env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+
