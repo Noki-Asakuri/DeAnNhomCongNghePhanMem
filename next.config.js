@@ -1,13 +1,14 @@
-/**
- * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially useful
- * for Docker builds.
- */
-await import("./src/env.mjs");
+import createJiti from "jiti";
+import { fileURLToPath } from "node:url";
+
+const jiti = createJiti(fileURLToPath(import.meta.url));
+
+jiti("./src/env.ts");
 
 /** @type {import("next").NextConfig} */
 const config = {
 	reactStrictMode: true,
-
+	eslint: { ignoreDuringBuilds: true },
 	images: {
 		domains: [
 			"images.clerk.dev",

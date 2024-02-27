@@ -27,8 +27,10 @@ export const SearchBar = () => {
 		<form className="group flex w-max">
 			<div className="w-40">
 				<Input
+					radius="lg"
 					isClearable
 					ref={inputRef}
+					labelPlacement="outside"
 					placeholder="Tìm kiếm"
 					type="text"
 					name="query"

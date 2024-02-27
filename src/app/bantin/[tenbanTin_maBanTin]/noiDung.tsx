@@ -1,18 +1,19 @@
 "use client";
 
-import NextLink from "next/link";
-
 import { api } from "@/utils/trpc/react";
 
-import { useTimeoutFn } from "react-use";
-import { Image, Link } from "@nextui-org/react";
-import ReactMarkdown from "react-markdown";
+import NextLink from "next/link";
 
-export const NoiDung = ({ maBanTin, children }: { maBanTin: string; children: string }) => {
+import { Image, Link } from "@nextui-org/react";
+
+import ReactMarkdown from "react-markdown";
+import { useTimeoutFn } from "react-use";
+
+export const NoiDung = ({ maBanTin, children }: { maBanTin?: string; children: string }) => {
 	const markAsRead = api.banTin.markAsRead.useMutation();
 
 	useTimeoutFn(() => {
-		markAsRead.mutate({ maBanTin });
+		if (maBanTin) markAsRead.mutate({ maBanTin });
 	}, 5000);
 
 	return (

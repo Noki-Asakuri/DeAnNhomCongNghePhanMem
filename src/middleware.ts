@@ -1,6 +1,7 @@
 import { authMiddleware } from "@clerk/nextjs";
 
 export default authMiddleware({
+	clockSkewInMs: 1000,
 	publicRoutes: [
 		"/",
 		"/auth/dang-nhap",

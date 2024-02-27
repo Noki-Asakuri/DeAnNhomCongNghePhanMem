@@ -11,7 +11,7 @@ import { Card, CardBody, Chip, Divider, Image, Link } from "@nextui-org/react";
 
 type ParamsType = { banTin: Awaited<ReturnType<typeof getRandomBanTin>>[number] };
 
-export const BanTinMoi = ({ banTin, host, isLast }: ParamsType & { host: string; isLast: boolean }) => {
+export const BanTinMoi = ({ banTin, isLast }: ParamsType & { isLast: boolean }) => {
 	const banTinPath = encodeBanTinPath(banTin);
 
 	return (
@@ -39,12 +39,7 @@ export const BanTinMoi = ({ banTin, host, isLast }: ParamsType & { host: string;
 								</Link>
 							</Chip>
 
-							<ChiaSeDropdown
-								duongDanBanTin={banTinPath}
-								host={host}
-								tenBanTin={banTin.TenBanTin}
-								maBanTin={banTin.MaBanTin}
-							/>
+							<ChiaSeDropdown duongDanBanTin={banTinPath} tenBanTin={banTin.TenBanTin} maBanTin={banTin.MaBanTin} />
 						</div>
 					</div>
 				</CardBody>

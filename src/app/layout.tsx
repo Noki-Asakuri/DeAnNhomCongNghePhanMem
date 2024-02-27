@@ -10,11 +10,13 @@ import { headers } from "next/headers";
 
 import { viVN } from "@clerk/localizations";
 import { ClerkProvider } from "@clerk/nextjs";
-import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 import React from "react";
 
 const font = Inter({ subsets: ["latin"], display: "swap", weight: "400" });
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
 	title: "Bản Tin 24H - Nguồn Tin Tức Đa Dạng và Chính Xác",
@@ -48,7 +50,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 					</MainLayout>
 
 					<Toaster />
-					<Analytics />
+					<SpeedInsights />
 				</body>
 			</html>
 		</ClerkProvider>

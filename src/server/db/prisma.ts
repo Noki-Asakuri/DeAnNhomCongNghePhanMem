@@ -1,20 +1,17 @@
 // src/server/db/client.ts
-import { PrismaClient } from "@prisma/client";
-import { type Connection, connect } from "@planetscale/database";
+import { env } from "@/env";
+
+import { Client } from "@planetscale/database";
 import { PrismaPlanetScale } from "@prisma/adapter-planetscale";
-import { env } from "@/env.mjs";
+import { PrismaClient } from "@prisma/client";
 
 declare global {
 	// eslint-disable-next-line no-var
 	var prisma: PrismaClient;
-	// eslint-disable-next-line no-var
-	var connection: Connection;
-	// eslint-disable-next-line no-var
-	var adapter: PrismaPlanetScale;
 }
 
-const connection = global.connection || connect({ url: env.DATABASE_URL });
-const adapter = global.adapter || new PrismaPlanetScale(connection);
+const client = new Client({ url: env.DATABASE_URL, fetch });
+const adapter = new PrismaPlanetScale(client);
 
 export const prisma =
 	global.prisma ||
@@ -25,6 +22,4 @@ export const prisma =
 
 if (process.env.NODE_ENV !== "production") {
 	global.prisma = prisma;
-	global.connection = connection;
-	global.adapter = adapter;
 }

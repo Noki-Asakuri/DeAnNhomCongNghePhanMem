@@ -5,12 +5,12 @@ import dymamic from "next/dynamic";
 
 import { Spinner } from "@nextui-org/react";
 
-const CreatePage = dymamic(() => import("@/components/admin/news/create/CreatePage"), {
+const PreviewNews = dymamic(() => import("@/components/admin/news/create/PreviewNews"), {
 	ssr: false,
 	loading: () => <Spinner label="Đang tải..." />,
 });
 
-export default async function CreateBanTinPage() {
+export default async function PreviewNewsPage() {
 	const user = await api.admin.getCurrentUser.query({ allowedRoles: ["NhanVien", "QuanTriVien", "TongBienTap"] });
 	if (!user) return <ForbiddenPage />;
 
@@ -18,7 +18,7 @@ export default async function CreateBanTinPage() {
 
 	return (
 		<main className="flex w-full flex-col gap-4">
-			<CreatePage categories={categories} />
+			<PreviewNews categories={categories} user={user} />
 		</main>
 	);
 }

@@ -22,14 +22,12 @@ const perPage = [6, 12, 18, 25, 50] as const;
 
 export const SearchContent = ({
 	initialNews,
-	host,
 	className,
 	authors,
 	categories,
 }: {
 	className?: ClassNameValue;
 	initialNews: RouterOutputs["banTin"]["searchBanTin"];
-	host: string;
 	categories: RouterOutputs["common"]["getCategories"];
 	authors: RouterOutputs["common"]["getAuthors"];
 }) => {
@@ -260,7 +258,6 @@ export const SearchContent = ({
 
 											<ChiaSeDropdown
 												duongDanBanTin={banTinPath}
-												host={host}
 												tenBanTin={banTin.TenBanTin}
 												maBanTin={banTin.MaBanTin}
 											/>

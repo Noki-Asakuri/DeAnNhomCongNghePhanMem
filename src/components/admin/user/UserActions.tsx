@@ -3,7 +3,7 @@
 import { cn } from "@/utils/common";
 import { api } from "@/utils/trpc/react";
 
-import type { userType } from "./UserTable";
+import type { UserType } from "./UserTable";
 import { disAllowedRoles } from "./data";
 
 import {
@@ -30,7 +30,7 @@ export const UserActions = ({
 	currentUserId,
 	refetch,
 }: {
-	user: userType;
+	user: UserType;
 	currentUserId: string;
 	refetch: () => Promise<unknown>;
 }) => {

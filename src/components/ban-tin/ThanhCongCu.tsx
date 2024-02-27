@@ -16,7 +16,7 @@ type ParamsType = {
 	banTin: Awaited<ReturnType<typeof layBanTin>>;
 };
 
-export const ThanhCongCu = ({ banTin, host }: ParamsType & { host: string }) => {
+export const ThanhCongCu = ({ banTin }: ParamsType) => {
 	const {
 		data,
 		isLoading,
@@ -37,7 +37,7 @@ export const ThanhCongCu = ({ banTin, host }: ParamsType & { host: string }) => 
 	const currentPath = usePathname();
 
 	tweetUrl.searchParams.set("text", banTin!.TenBanTin);
-	tweetUrl.searchParams.set("url", getUrl(host, currentPath));
+	tweetUrl.searchParams.set("url", getUrl(currentPath));
 
 	return (
 		<div className="flex items-center justify-between pt-4">
@@ -53,9 +53,7 @@ export const ThanhCongCu = ({ banTin, host }: ParamsType & { host: string }) => 
 							<Heart size={20} className={data ? "fill-red-600 stroke-red-600" : undefined} />
 						)
 					}
-					onClick={() => {
-						yeuThich.mutate({ maBanTin: banTin!.MaBanTin });
-					}}
+					onPress={() => yeuThich.mutate({ maBanTin: banTin!.MaBanTin })}
 				/>
 			</div>
 
@@ -82,7 +80,7 @@ export const ThanhCongCu = ({ banTin, host }: ParamsType & { host: string }) => 
 						startContent={<LinkIcon size={20} />}
 						onClick={() => {
 							window.navigator.clipboard
-								.writeText(getUrl(host, currentPath))
+								.writeText(getUrl(currentPath))
 								.then(() => {
 									toast.success("Sao chép đường đẫn thành công");
 								})

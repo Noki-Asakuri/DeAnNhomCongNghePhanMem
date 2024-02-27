@@ -1,6 +1,6 @@
 import type { allNewsAction } from "@/components/admin/news/data";
 import { disAllowedRoles } from "@/components/admin/user/data";
-import { env } from "@/env.mjs";
+import { env } from "@/env";
 
 import { adminProcedure, createTRPCRouter, publicProcedure, staffProcedure } from "../trpc";
 
@@ -59,7 +59,7 @@ export const adminRouter = createTRPCRouter({
 								...(input.query.valueType === "SDT"
 									? { SoDT: nullPhoneNumbers.includes(trimmedValue) ? null : { contains: trimmedValue } }
 									: {}),
-						  }
+							}
 						: {},
 				],
 			};
@@ -269,12 +269,17 @@ export const adminRouter = createTRPCRouter({
 	updateNews: staffProcedure
 		.input(
 			z.object({
-				type: z.custom<(typeof allNewsAction)[number]>(),
+				type: z.custom<Exclude<(typeof allNewsAction)[number], "Copy">>(),
 				maBanTin: z.string(),
 			}),
 		)
 		.mutation(async ({ ctx, input }) => {
-			const status: Record<(typeof allNewsAction)[number], TrangThai> = {
+			if (input.type === "Delete") {
+				// TODO: Delete news
+				return;
+			}
+
+			const status: Record<typeof input.type, TrangThai> = {
 				approveNew: "APPROVED",
 				disapproveNew: "UNAPPROVED",
 				markFinish: "FINISHED",
@@ -284,6 +289,32 @@ export const adminRouter = createTRPCRouter({
 			};
 
 			await ctx.prisma.banTin.update({ where: { MaBanTin: input.maBanTin }, data: { TrangThai: status[input.type] } });
+		}),
+
+	createNews: adminProcedure
+		.input(
+			z.object({
+				TenBanTin: z.string().min(10, "Tên bản tin không thể ngắn hơn 10 ký tự"),
+				NoiDung: z.string().min(1, "Nội dung không thể để trống"),
+				NoiDungTomTat: z.string().min(1, "Nội dung tóm gọn không thể để trống"),
+
+				PreviewImage: z.string().url("Ảnh phải là định dạng url"),
+				MaDanhMuc: z.string().min(1, "Danh mục không thể để trống"),
+			}),
+		)
+		.mutation(async ({ ctx, input }) => {
+			const data = await ctx.prisma.banTin.create({
+				data: {
+					TenBanTin: input.TenBanTin,
+					NoiDung: input.NoiDung,
+					NoiDungTomTat: input.NoiDungTomTat,
+					PreviewImage: input.PreviewImage,
+
+					TrangThai: "UNFINISHED",
+					MaNhanVien: ctx.userId,
+					MaDanhMuc: input.MaDanhMuc,
+				},
+			});
 		}),
 
 	getNews: staffProcedure
@@ -335,7 +366,7 @@ export const adminRouter = createTRPCRouter({
 								...(input.query.valueType === "ID" ? { MaBanTin: { contains: trimmedValue } } : {}),
 								...(input.query.valueType === "Name" ? { TenBanTin: { contains: trimmedValue } } : {}),
 								...(input.query.valueType === "NoiDung" ? { NoiDung: { contains: trimmedValue } } : {}),
-						  }
+							}
 						: {},
 				],
 			};

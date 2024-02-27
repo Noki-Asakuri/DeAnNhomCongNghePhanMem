@@ -1,10 +1,11 @@
 "use client";
 
+import { encodeBanTinPath, getUrl } from "@/utils/path";
 import { api } from "@/utils/trpc/react";
 import type { RouterOutputs } from "@/utils/trpc/shared";
 
 import type { newType } from "./NewsTable";
-import type { allNewsAction } from "./data";
+import { NhanVienActionsData, TongBienTapActionsData, type allNewsAction } from "./data";
 
 import {
 	Button,
@@ -21,23 +22,21 @@ import {
 	useDisclosure,
 } from "@nextui-org/react";
 
-import { BookCheck, BookX, CheckCheck, MinusCircle, MoreVertical, ThumbsDown, ThumbsUp, XCircle } from "lucide-react";
+import { Copy, MoreVertical, XCircle } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
 
 export const NewActions = ({
 	banTin,
-	currentUserId,
 	user,
 	refetch,
 }: {
 	banTin: newType;
-	currentUserId: string;
 	user: NonNullable<RouterOutputs["admin"]["getCurrentUser"]>;
 	refetch: () => Promise<unknown>;
 }) => {
 	const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
-	const [actionType, setActionType] = useState<(typeof allNewsAction)[number]>();
+	const [actionType, setActionType] = useState<Exclude<(typeof allNewsAction)[number], "Copy">>();
 
 	const updateNew = api.admin.updateNews.useMutation({
 		onSuccess: async () => {
@@ -56,13 +55,7 @@ export const NewActions = ({
 					<Button isIconOnly variant="light" startContent={<MoreVertical size={16} />} />
 				</DropdownTrigger>
 
-				{user.VaiTro === "NhanVien" && (
-					<NhanVienDropdown banTin={banTin} currentUserId={currentUserId} onOpen={onOpen} setActionType={setActionType} />
-				)}
-
-				{(user.VaiTro === "TongBienTap" || user.VaiTro === "QuanTriVien") && (
-					<TongBienTapDropdown banTin={banTin} currentUserId={currentUserId} onOpen={onOpen} setActionType={setActionType} />
-				)}
+				<DropdownActions banTin={banTin} user={user} onOpen={onOpen} setActionType={setActionType} />
 			</Dropdown>
 
 			{actionType && (
@@ -99,141 +92,89 @@ export const NewActions = ({
 	);
 };
 
-const TongBienTapDropdown = ({
-	banTin,
-	onOpen,
-	setActionType,
-}: {
+type DropdownPropsType = {
 	banTin: newType;
-	currentUserId: string;
+	user: NonNullable<RouterOutputs["admin"]["getCurrentUser"]>;
 	onOpen: () => void;
-	setActionType: (e: (typeof allNewsAction)[number]) => void;
-}) => {
+	setActionType: (e: Exclude<(typeof allNewsAction)[number], "Copy">) => void;
+};
+
+const DropdownActions = ({ banTin, user, onOpen, setActionType }: DropdownPropsType) => {
 	return (
 		<DropdownMenu
 			itemClasses={{ description: "max-w-[200px]" }}
 			disabledKeys={(() => {
-				if (banTin.TrangThai === "APPROVED") return ["approveNew", "disapproveNew"];
-				if (banTin.TrangThai === "UNAPPROVED") return ["approveNew", "disapproveNew"];
-				if (banTin.TrangThai === "WAITING") return ["cancelRequest"];
+				if (user.VaiTro === "NhanVien" || user.VaiTro === "QuanTriVien") {
+					if (banTin.MaNhanVien !== user.MaTaiKhoan && user.VaiTro === "NhanVien") {
+						return ["markFinish", "markUnfinish", "requestApprove"];
+					}
+
+					if (banTin.TrangThai === "FINISHED") return ["markFinish"];
+					if (banTin.TrangThai === "WAITING") return ["markFinish", "requestApprove"];
+					if (banTin.TrangThai === "UNFINISHED") return ["markUnfinish", "requestApprove"];
+				}
+
+				if (user.VaiTro === "TongBienTap" || user.VaiTro === "QuanTriVien") {
+					if (banTin.TrangThai === "APPROVED") return ["approveNew", "disapproveNew"];
+					if (banTin.TrangThai === "UNAPPROVED") return ["approveNew", "disapproveNew"];
+					if (banTin.TrangThai === "WAITING") return ["cancelRequest"];
+
+					return ["approveNew", "disapproveNew", "cancelRequest"];
+				}
 
 				return ["approveNew", "disapproveNew", "cancelRequest"];
 			})()}
-			onAction={(e) => {
-				setActionType(e as (typeof allNewsAction)[number]);
-				onOpen();
+			onAction={(key) => {
+				const actionType = key as (typeof allNewsAction)[number];
+
+				if (actionType === "Copy") {
+					const duongDanBanTin = encodeBanTinPath(banTin);
+
+					// eslint-disable-next-line @typescript-eslint/no-floating-promises
+					window.navigator.clipboard
+						.writeText(getUrl(duongDanBanTin))
+						.then(() => {
+							toast.success("Copy đường dẫn thành công!");
+						})
+						.catch(() => {
+							toast.error("Sao chép đường đẫn thất bại");
+						});
+				}
 			}}
 		>
-			<DropdownSection
-				showDivider
-				title="Chấp thuận"
-				items={
-					[
-						{
-							key: "approveNew",
-							value: "Chấp thuận bản tin",
-							description: "Xác nhận bản tin đã được chấp thuận",
-							icon: <ThumbsUp />,
-							color: "text-success",
-						},
-						{
-							key: "disapproveNew",
-							value: "Không chấp thuận bản tin",
-							description: "Đánh đấu bản tin không được chấp thuận",
-							icon: <ThumbsDown />,
-							color: "text-warning",
-						},
-						{
-							key: "cancelRequest",
-							value: "Hủy bỏ yêu cầu chấp thuận",
-							description: "Hủy bỏ trạng thái chấp thuận hay từ chối chấp thuận của bản tin",
-							icon: <MinusCircle />,
-							color: "text-danger",
-						},
-					] satisfies { key: (typeof allNewsAction)[number]; [key: string]: string | JSX.Element }[]
-				}
-			>
-				{/* @ts-expect-error Typescript error, but still render correctly */}
-				{(item) => (
-					<DropdownItem key={item.key} startContent={item.icon} description={item.description} className={item.color}>
-						{item.value}
-					</DropdownItem>
-				)}
-			</DropdownSection>
-
-			<DropdownSection title="Vùng nguy hiểm">
-				<DropdownItem key="Delete" description="Xóa bản tin này" className="text-danger" color="danger" startContent={<XCircle />}>
-					Xóa
+			<DropdownSection showDivider title="Hành động">
+				<DropdownItem key="Copy" description="Sao chép đường dẫn của bản tin này" startContent={<Copy />}>
+					Sao chép đường dẫn
 				</DropdownItem>
 			</DropdownSection>
-		</DropdownMenu>
-	);
-};
 
-const NhanVienDropdown = ({
-	banTin,
-	currentUserId,
-	onOpen,
-	setActionType,
-}: {
-	banTin: newType;
-	currentUserId: string;
-	onOpen: () => void;
-	setActionType: (e: (typeof allNewsAction)[number]) => void;
-}) => {
-	return (
-		<DropdownMenu
-			itemClasses={{ description: "max-w-[200px]" }}
-			disabledKeys={(() => {
-				if (banTin.MaNhanVien !== currentUserId) return ["markFinish", "markUnfinish", "requestApprove"];
+			{user.VaiTro === "TongBienTap" || user.VaiTro === "QuanTriVien" ? (
+				<DropdownSection showDivider title="Tổng biên tập" items={TongBienTapActionsData}>
+					{/* @ts-expect-error Typescript error, but still render correctly */}
+					{(item) => (
+						<DropdownItem key={item.key} startContent={item.icon} description={item.description} className={item.color}>
+							{item.value}
+						</DropdownItem>
+					)}
+				</DropdownSection>
+			) : (
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				(undefined as any)
+			)}
 
-				if (banTin.TrangThai === "FINISHED") return ["markFinish"];
-				if (banTin.TrangThai === "WAITING") return ["markFinish", "requestApprove"];
-				if (banTin.TrangThai === "UNFINISHED") return ["markUnfinish", "requestApprove"];
-
-				return [];
-			})()}
-			onAction={(e) => {
-				setActionType(e as (typeof allNewsAction)[number]);
-				onOpen();
-			}}
-		>
-			<DropdownSection
-				showDivider
-				title="Hành động"
-				items={
-					[
-						{
-							key: "markFinish",
-							value: "Đánh đấu hoàn thành",
-							description: "Đánh dấu bản tin đã hoàn thành",
-							icon: <BookCheck />,
-							color: "text-primary",
-						},
-						{
-							key: "markUnfinish",
-							value: "Đánh dấu chưa hoàn thành",
-							description: "Đánh đấu bản tin chưa hoàn thành",
-							icon: <BookX />,
-							color: "text-warning",
-						},
-						{
-							key: "requestApprove",
-							value: "Yêu cầu xét duyệt",
-							description: "Xác nhận bản tin có thể được duyệt",
-							icon: <CheckCheck />,
-							color: "text-success",
-						},
-					] satisfies { key: (typeof allNewsAction)[number]; [key: string]: string | JSX.Element }[]
-				}
-			>
-				{/* @ts-expect-error Typescript error, but still render correctly */}
-				{(item) => (
-					<DropdownItem key={item.key} startContent={item.icon} description={item.description} className={item.color}>
-						{item.value}
-					</DropdownItem>
-				)}
-			</DropdownSection>
+			{user.VaiTro === "NhanVien" || user.VaiTro === "QuanTriVien" ? (
+				<DropdownSection showDivider title="Nhân viên" items={NhanVienActionsData}>
+					{/* @ts-expect-error Typescript error, but still render correctly */}
+					{(item) => (
+						<DropdownItem key={item.key} startContent={item.icon} description={item.description} className={item.color}>
+							{item.value}
+						</DropdownItem>
+					)}
+				</DropdownSection>
+			) : (
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				(undefined as any)
+			)}
 
 			<DropdownSection title="Vùng nguy hiểm">
 				<DropdownItem key="Delete" description="Xóa bản tin này" className="text-danger" color="danger" startContent={<XCircle />}>

@@ -7,7 +7,6 @@ import { layBanTin } from "./data";
 import { NoiDung } from "./noiDung";
 
 import type { Metadata } from "next";
-import { headers } from "next/headers";
 import NextLink from "next/link";
 import { notFound } from "next/navigation";
 
@@ -30,8 +29,6 @@ export default async function BanTinPage({ params: { tenbanTin_maBanTin } }: Par
 	const user = await currentUser();
 
 	const banTin = await layBanTin(tenbanTin_maBanTin);
-
-	const host = headers().get("host");
 
 	const dateFormatter = new Intl.DateTimeFormat("vi", { dateStyle: "full" });
 	const timeFormatter = new Intl.DateTimeFormat("vi", { timeStyle: "long" });
@@ -65,7 +62,7 @@ export default async function BanTinPage({ params: { tenbanTin_maBanTin } }: Par
 							<span className="text-xl font-bold">{banTin.NhanVien.TaiKhoan.TenTaiKhoan}</span>
 						</div>
 
-						<ThanhCongCu banTin={banTin} host={host!} />
+						<ThanhCongCu banTin={banTin} />
 						<DanhGiaBanTin banTin={banTin} userJSON={user ? JSON.stringify(user) : null} />
 					</section>
 

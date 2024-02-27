@@ -1,9 +1,10 @@
-import { NextResponse } from "next/server";
-
-import { env } from "@/env.mjs";
+import { env } from "@/env";
 import { prisma } from "@/server/db/prisma";
 
+import { NextResponse } from "next/server";
+
 import type { WebhookEvent } from "@clerk/clerk-sdk-node";
+
 import { Webhook } from "svix";
 
 export async function POST(request: Request) {

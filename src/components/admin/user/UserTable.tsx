@@ -5,6 +5,7 @@ import { dayjs } from "@/utils/dayjs";
 import { api } from "@/utils/trpc/react";
 import type { RouterInputs, RouterOutputs } from "@/utils/trpc/shared";
 
+import { TablePagination } from "../TablePagination";
 import { UserActions } from "./UserActions";
 
 import {
@@ -15,7 +16,6 @@ import {
 	DropdownMenu,
 	DropdownTrigger,
 	Input,
-	Pagination,
 	Select,
 	SelectItem,
 	type Selection,
@@ -27,17 +27,18 @@ import {
 	TableColumn,
 	TableHeader,
 	TableRow,
+	Tooltip,
 	User,
 } from "@nextui-org/react";
 import type { Role } from "@prisma/client";
 
-import { ChevronDownIcon, RotateCcw, SearchIcon } from "lucide-react";
+import { ChevronDown, ChevronDownIcon, RotateCcw, SearchIcon } from "lucide-react";
 import { type ChangeEvent, useCallback, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 
-export type userType = RouterOutputs["admin"]["getUsers"]["data"][number];
+export type UserType = RouterOutputs["admin"]["getUsers"]["data"][number];
 
-const allColumns: { name: string; uid: keyof userType | "Actions"; sortable?: boolean }[] = [
+const allColumns: { name: string; uid: keyof UserType | "Actions"; sortable?: boolean }[] = [
 	{ name: "ID", uid: "MaTaiKhoan", sortable: true },
 	{ name: "Người dùng", uid: "TenTaiKhoan", sortable: true },
 	{ name: "Số DT", uid: "SoDT", sortable: true },
@@ -54,7 +55,7 @@ const roles: Record<Role, string> = {
 	QuanTriVien: "Quản trị viên",
 };
 
-const INITIAL_VISIBLE_COLUMNS: (typeof allColumns)[number]["uid"][] = ["TenTaiKhoan", "Banned", "VaiTro", "Actions"];
+const INITIAL_VISIBLE_COLUMNS: (typeof allColumns)[number]["uid"][] = ["TenTaiKhoan", "Banned", "VaiTro", "NgayTaoTK", "Actions"];
 
 const queryType: Array<{
 	key: `Search-${NonNullable<RouterInputs["admin"]["getUsers"]["query"]>["valueType"]}`;
@@ -103,13 +104,12 @@ export const UserTable = ({
 			},
 		},
 		{
-			placeholderData: initialUsers,
+			initialData: initialUsers,
 			refetchOnReconnect: false,
 			refetchOnWindowFocus: false,
-			keepPreviousData: true,
 			onError: ({ message }) => toast.error("Lỗi: " + message),
 			onSuccess: () => {
-				const totalPages = Math.ceil(users!.count / rowsPerPage);
+				const totalPages = Math.ceil(users.count / rowsPerPage);
 				if (page > totalPages) setPage(totalPages);
 			},
 		},
@@ -133,12 +133,12 @@ export const UserTable = ({
 		return allColumns.filter((column) => Array.from(visibleColumns).includes(column.uid));
 	}, [visibleColumns]);
 
-	const pages = Math.ceil(users!.count / rowsPerPage);
-
 	const sortedItems = useMemo(() => {
-		return [...users!.data].sort((a, b) => {
-			const first = a[sortDescriptor.column as keyof userType];
-			const second = b[sortDescriptor.column as keyof userType];
+		if (isRefetching) return [];
+
+		return [...users.data].sort((a, b) => {
+			const first = a[sortDescriptor.column as keyof UserType];
+			const second = b[sortDescriptor.column as keyof UserType];
 
 			let cmp;
 
@@ -149,118 +149,93 @@ export const UserTable = ({
 			return sortDescriptor.direction === "descending" ? -cmp : cmp;
 		});
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [sortDescriptor, users!.data]);
+	}, [sortDescriptor, users.data, isRefetching]);
 
 	const onRowsPerPageChange = useCallback((e: ChangeEvent<HTMLSelectElement>) => {
 		setRowPerPage(Number(e.target.value.slice("per-page-".length)) as typeof rowsPerPage);
 		setPage(1);
 	}, []);
 
-	const onSearchChange = useCallback((value?: string) => {
-		if (value) {
-			setQueryUsers((prev) => ({ ...prev, value }));
+	const onQueryChange = useCallback((key: keyof typeof queryUsers, value?: string | unknown[]) => {
+		if ((typeof value === "string" && value) || (Array.isArray(value) && value.length > 0)) {
+			setQueryUsers((prev) => ({ ...prev, [key]: value }));
 			setPage(1);
 		} else {
-			setQueryUsers((prev) => ({ ...prev, value: "" }));
-		}
-	}, []);
+			setQueryUsers((prev) => {
+				if (typeof prev[key] === "string") return { ...prev, [key]: "" };
+				if (Array.isArray(prev[key])) return { ...prev, [key]: [] };
 
-	const onClear = useCallback(() => {
-		setQueryUsers((prev) => ({ ...prev, value: "", queryRoles: [] }));
-		setPage(1);
+				return prev;
+			});
+			setPage(1);
+		}
 	}, []);
 
 	const topContent = useMemo(() => {
 		return (
 			<div className="flex flex-col gap-4">
 				<div className="flex items-end justify-between gap-3">
-					<div className="flex w-full gap-2">
-						<Select
-							defaultSelectedKeys={["Search-Name"]}
-							value={queryUsers.value}
-							labelPlacement="outside"
-							classNames={{ base: "w-1/4" }}
-							items={queryType}
-							onChange={(e) => {
-								setQueryUsers((prev) => ({
-									...prev,
-									type: e.target.value as typeof queryUsers.type,
-								}));
-							}}
+					<Select
+						size="lg"
+						defaultSelectedKeys={["Search-Name"]}
+						value={queryUsers.value}
+						labelPlacement="outside"
+						classNames={{ base: "w-1/4", value: "text-small" }}
+						items={queryType}
+						onChange={(e) => onQueryChange("type", e.target.value)}
+					>
+						{(item) => <SelectItem key={item.key}>{item.value}</SelectItem>}
+					</Select>
+
+					<Input
+						size="sm"
+						isClearable
+						radius="lg"
+						className="w-full"
+						placeholder="Tìm kiếm..."
+						startContent={<SearchIcon />}
+						value={queryUsers.value}
+						onClear={() => onQueryChange("value")}
+						onValueChange={(value) => onQueryChange("value", value)}
+					/>
+
+					<Dropdown>
+						<DropdownTrigger className="hidden sm:flex">
+							<Button size="lg" className="text-small" endContent={<ChevronDownIcon />} variant="flat">
+								Cột
+							</Button>
+						</DropdownTrigger>
+						<DropdownMenu
+							disallowEmptySelection
+							aria-label="Table Columns"
+							closeOnSelect={false}
+							selectedKeys={visibleColumns}
+							selectionMode="multiple"
+							onSelectionChange={setVisibleColumns}
 						>
-							{(item) => <SelectItem key={item.key}>{item.value}</SelectItem>}
-						</Select>
-
-						<Input
-							isClearable
-							className="w-full"
-							placeholder="Tìm kiếm..."
-							startContent={<SearchIcon />}
-							value={queryUsers.value}
-							onClear={() => onClear()}
-							onValueChange={onSearchChange}
-						/>
-					</div>
-
-					<div className="flex gap-3">
-						<Dropdown>
-							<DropdownTrigger className="hidden sm:flex">
-								<Button endContent={<ChevronDownIcon className="text-small" />} variant="flat">
-									Cột
-								</Button>
-							</DropdownTrigger>
-							<DropdownMenu
-								disallowEmptySelection
-								aria-label="Table Columns"
-								closeOnSelect={false}
-								selectedKeys={visibleColumns}
-								selectionMode="multiple"
-								onSelectionChange={setVisibleColumns}
-							>
-								{allColumns.map((column) => (
-									<DropdownItem key={column.uid} className="capitalize">
-										{column.name}
-									</DropdownItem>
-								))}
-							</DropdownMenu>
-						</Dropdown>
-					</div>
-				</div>
-
-				<div className="flex items-center justify-between">
-					<span className="text-small text-default-400">Tổng {users!.count} người dùng</span>
-
-					<div>
-						<Select
-							size="sm"
-							labelPlacement="outside-left"
-							onChange={onRowsPerPageChange}
-							defaultSelectedKeys={["per-page-" + rowsPerPage]}
-							label="Cột từng trang"
-							items={perPage.map((num) => ({ key: "per-page-" + num, value: String(num) }))}
-							classNames={{
-								label: "flex items-center h-8 whitespace-nowrap text-sm",
-								base: "w-[180px]",
-							}}
-						>
-							{(item) => <SelectItem key={item.key}>{item.value}</SelectItem>}
-						</Select>
-					</div>
+							{allColumns.map((column) => (
+								<DropdownItem key={column.uid} className="capitalize">
+									{column.name}
+								</DropdownItem>
+							))}
+						</DropdownMenu>
+					</Dropdown>
 				</div>
 
 				<div className="flex gap-2">
 					<Select
 						size="sm"
+						radius="lg"
 						label="Phân loại chức vụ"
 						selectionMode="multiple"
 						className="flex-grow"
 						onChange={(e) => {
 							const data = e.target.value
+								.replaceAll("select-", "")
 								.split(",")
-								.filter((role) => role.length)
-								.map((role) => role.slice("select-".length) as Role);
+								.filter((role) => role.length);
 
-							setQueryUsers((prev) => ({ ...prev, queryRoles: data.length > 0 ? data : [] }));
+							onQueryChange("queryRoles", data);
 						}}
 					>
 						{ObjectKeys(roles).map((role) => {
@@ -283,50 +258,52 @@ export const UserTable = ({
 								})}
 							/>
 						}
-						// eslint-disable-next-line @typescript-eslint/no-misused-promises
-						onClick={async () => {
-							await Promise.allSettled([refetchData()]);
-						}}
+						onPress={async () => await Promise.allSettled([refetchData()])}
 					/>
 				</div>
 			</div>
 		);
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [queryUsers, visibleColumns, onSearchChange, onRowsPerPageChange, users!.count, hasSearchFilter, isRefetching]);
-
-	const onNextPage = useCallback(() => {
-		if (page < pages) {
-			setPage(page + 1);
-		}
-	}, [page, pages]);
-
-	const onPreviousPage = useCallback(() => {
-		if (page > 1) {
-			setPage(page - 1);
-		}
-	}, [page]);
+	}, [queryUsers, visibleColumns, onQueryChange, onRowsPerPageChange, users.count, hasSearchFilter, isRefetching]);
 
 	const bottomContent = useMemo(() => {
 		return (
-			<div className="flex items-center justify-between px-2 py-2">
-				<Button isDisabled={pages === 1} color="primary" onPress={onPreviousPage}>
-					Previous
-				</Button>
+			<div className="flex items-center justify-between">
+				<section className="flex items-center justify-center gap-2 whitespace-nowrap text-small text-default-400">
+					<span>Hiển thị</span>
 
-				<Pagination isDisabled={isRefetching} showShadow color="primary" page={page} total={pages} onChange={setPage} />
+					<Select
+						size="sm"
+						onChange={onRowsPerPageChange}
+						defaultSelectedKeys={["per-page-" + rowsPerPage]}
+						items={perPage.map((num) => ({ key: "per-page-" + num, value: String(num) }))}
+						selectorIcon={<ChevronDown />}
+						classNames={{
+							label: "whitespace-nowrap",
+							base: "w-[70px]",
+							trigger: "h-max min-h-0",
+							popoverContent: "min-w-max",
+						}}
+					>
+						{(item) => (
+							<SelectItem key={item.key} className="px-1.5 py-1">
+								{item.value}
+							</SelectItem>
+						)}
+					</Select>
 
-				<Button isDisabled={pages === 1} color="primary" onPress={onNextPage}>
-					Next
-				</Button>
+					<span>trong tổng số {users.count} người dùng</span>
+				</section>
+
+				<TablePagination data={users} isRefetching={isRefetching} page={page} rowsPerPage={rowsPerPage} setPage={setPage} />
 			</div>
 		);
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [page, pages, isRefetching, users!.count]);
+	}, [page, isRefetching, users.count]);
 
 	const renderCell = useCallback(
-		(user: userType, columnKey: (typeof allColumns)[number]["uid"]) => {
-			let cellValue = user[columnKey as keyof userType];
-			if (cellValue instanceof Date) cellValue = dayjs(cellValue).format("DD/MM/YYYY - HH:mm:ss");
+		(user: UserType, columnKey: (typeof allColumns)[number]["uid"]) => {
+			let cellValue = user[columnKey as keyof UserType];
 
 			// * NOTE: Prevent typescript from being mad
 			if (typeof cellValue === "object") cellValue = "";
@@ -350,11 +327,13 @@ export const UserTable = ({
 						<Select
 							aria-label="Cập nhật chức vụ"
 							labelPlacement="outside"
+							radius="lg"
 							disabledKeys={
 								currentUser.VaiTro === "QuanTriVien" ? ["Update-QuanTriVien"] : ["Update-TongBienTap", "Update-QuanTriVien"]
 							}
 							defaultSelectedKeys={[["Update", user.VaiTro].join("-")]}
 							isDisabled={user.MaTaiKhoan === currentUser.MaTaiKhoan || user.Banned}
+							classNames={{ popoverContent: "min-w-max" }}
 							items={ObjectKeys(roles).map((role) => ({
 								key: ["Update", role].join("-"),
 								value: roles[role],
@@ -372,11 +351,28 @@ export const UserTable = ({
 						</Select>
 					);
 
+				case "NgayTaoTK": {
+					const date = dayjs(user.NgayTaoTK);
+
+					return (
+						<Tooltip showArrow content={date.format("DD MMMM, YYYY, HH:mm")}>
+							<span>{date.fromNow()}</span>
+						</Tooltip>
+					);
+				}
+
 				case "Banned":
 					return (
-						<Chip color={cn<"success" | "danger">({ success: !user.Banned, danger: user.Banned })} variant="flat" size="sm">
-							{user.Banned ? "Cấm hoạt động" : "Hoạt động"}
-						</Chip>
+						<div className="flex w-full items-center justify-center">
+							<Chip
+								className="capitalize"
+								color={cn<"success" | "danger">({ success: !user.Banned, danger: user.Banned })}
+								size="sm"
+								variant="flat"
+							>
+								{user.Banned ? "Cấm hoạt động" : "Hoạt động"}
+							</Chip>
+						</div>
 					);
 
 				case "Actions":
@@ -416,7 +412,7 @@ export const UserTable = ({
 			<TableBody
 				isLoading={isRefetching}
 				loadingContent={<Spinner label="Đang tải..." />}
-				emptyContent={"Không tìm thấy người dùng nào"}
+				emptyContent={isRefetching ? undefined : "Không tìm thấy người dùng nào"}
 				items={sortedItems}
 			>
 				{(item) => (

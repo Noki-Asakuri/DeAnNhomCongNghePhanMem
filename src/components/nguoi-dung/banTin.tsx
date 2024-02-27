@@ -21,12 +21,10 @@ export const BanTin = ({
 	initialFavorites,
 	initialHistories,
 	children,
-	host,
 }: {
 	initialHistories?: RouterOutputs["user"]["getHistoris"];
 	initialFavorites?: RouterOutputs["user"]["getFavorites"];
 	children: React.ReactNode;
-	host: string;
 }) => {
 	const [page, setPage] = useState(1);
 	const [rowsPerPage] = useState<(typeof perPageArray)[number]>(6);
@@ -34,12 +32,12 @@ export const BanTin = ({
 	return (
 		<Card className="flex-1">
 			{initialFavorites && (
-				<FavoriteNews host={host} initialData={initialFavorites} page={page} setPage={setPage} rowsPerPage={rowsPerPage}>
+				<FavoriteNews initialData={initialFavorites} page={page} setPage={setPage} rowsPerPage={rowsPerPage}>
 					{children}
 				</FavoriteNews>
 			)}
 			{initialHistories && (
-				<HistoryNews host={host} initialData={initialHistories} page={page} setPage={setPage} rowsPerPage={rowsPerPage}>
+				<HistoryNews initialData={initialHistories} page={page} setPage={setPage} rowsPerPage={rowsPerPage}>
 					{children}
 				</HistoryNews>
 			)}
@@ -53,10 +51,9 @@ interface NewsType<T> {
 	rowsPerPage: number;
 	setPage: (page: number) => void;
 	children: ReactNode;
-	host: string;
 }
 
-const FavoriteNews = ({ initialData, page, rowsPerPage, setPage, children, host }: NewsType<RouterOutputs["user"]["getFavorites"]>) => {
+const FavoriteNews = ({ initialData, page, rowsPerPage, setPage, children }: NewsType<RouterOutputs["user"]["getFavorites"]>) => {
 	const {
 		data: news,
 		isRefetching,
@@ -70,7 +67,7 @@ const FavoriteNews = ({ initialData, page, rowsPerPage, setPage, children, host 
 		<>
 			<CardHeader>
 				<h2 className="flex w-full items-center justify-center gap-2 text-2xl font-semibold">
-					{children} ({news!.count || 0})
+					{children} ({news!.count ?? 0})
 				</h2>
 			</CardHeader>
 
@@ -79,7 +76,7 @@ const FavoriteNews = ({ initialData, page, rowsPerPage, setPage, children, host 
 					news!.data.map((banTin, index, array) => {
 						return (
 							<>
-								<BanTinItem key={banTin.MaBanTin} banTin={banTin} refetch={async () => await refetch()} host={host} />
+								<BanTinItem key={banTin.MaBanTin} banTin={banTin} refetch={async () => await refetch()} />
 								{index < array.length - 1 && <Divider />}
 							</>
 						);
@@ -93,7 +90,7 @@ const FavoriteNews = ({ initialData, page, rowsPerPage, setPage, children, host 
 	);
 };
 
-const HistoryNews = ({ initialData, page, rowsPerPage, setPage, children, host }: NewsType<RouterOutputs["user"]["getHistoris"]>) => {
+const HistoryNews = ({ initialData, page, rowsPerPage, setPage, children }: NewsType<RouterOutputs["user"]["getHistoris"]>) => {
 	const { data: news, isRefetching } = api.user.getHistoris.useQuery(
 		{ pageNum: page, perPage: rowsPerPage },
 		{ placeholderData: initialData, refetchOnMount: false, refetchOnWindowFocus: false },
@@ -112,7 +109,7 @@ const HistoryNews = ({ initialData, page, rowsPerPage, setPage, children, host }
 					news!.data.map((banTin, index, array) => {
 						return (
 							<>
-								<BanTinItem key={banTin.MaBanTin} banTin={banTin} host={host} />
+								<BanTinItem key={banTin.MaBanTin} banTin={banTin} />
 								{index < array.length - 1 && <Divider />}
 							</>
 						);
@@ -134,7 +131,7 @@ type BanTinType = Omit<
 	ReadAt?: Date;
 };
 
-const BanTinItem = ({ banTin, refetch, host }: { banTin: BanTinType; host: string; refetch?: () => Promise<unknown> }) => {
+const BanTinItem = ({ banTin, refetch }: { banTin: BanTinType; refetch?: () => Promise<unknown> }) => {
 	const banTinPath = encodeBanTinPath({ MaBanTin: banTin.MaBanTin, TenBanTin: banTin.BanTin.TenBanTin });
 
 	return (
@@ -181,7 +178,6 @@ const BanTinItem = ({ banTin, refetch, host }: { banTin: BanTinType; host: strin
 
 					<ChiaSeDropdown
 						duongDanBanTin={banTinPath}
-						host={host}
 						tenBanTin={banTin.BanTin.TenBanTin}
 						maBanTin={banTin.MaBanTin}
 						refetch={refetch}

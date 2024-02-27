@@ -5,15 +5,12 @@ import { SideBar } from "@/components/HomePage/Sidebar";
 import { getBanTinHot, getDanhMuc, getRandomBanTin } from "@/components/HomePage/data";
 import { Divider } from "@/components/common/Divider";
 
-import { headers } from "next/headers";
-
 import { Newspaper } from "lucide-react";
 
 export const dynamic = "force-dynamic",
 	fetchCache = "default-no-store";
 
 export default async function Home() {
-	const host = headers().get("host")!;
 	const [banTin, banTinRandom, danhMuc] = await Promise.all([getBanTinHot(), getRandomBanTin(), getDanhMuc()]);
 
 	return (
@@ -43,7 +40,7 @@ export default async function Home() {
 				<div className="grid w-full grid-cols-[70%,max-content,1fr]">
 					<div className="flex flex-col gap-y-5 py-5">
 						{banTinRandom.map((bt, index) => {
-							return <BanTinMoi key={bt.MaBanTin} banTin={bt} host={host} isLast={index + 1 === banTinRandom.length} />;
+							return <BanTinMoi key={bt.MaBanTin} banTin={bt} isLast={index + 1 === banTinRandom.length} />;
 						})}
 					</div>
 

@@ -29,13 +29,7 @@ export default async function Page() {
 
 	return (
 		<section className="flex w-full flex-col gap-2">
-			<NewsTable
-				initialNews={newsData}
-				currentUserId={user.MaTaiKhoan}
-				initialCategories={categories}
-				user={user}
-				staff={nhanVien || undefined}
-			/>
+			<NewsTable initialNews={newsData} initialCategories={categories} user={user} staff={nhanVien || undefined} />
 		</section>
 	);
 }

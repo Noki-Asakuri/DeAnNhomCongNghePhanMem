@@ -2,9 +2,11 @@
 
 import { ObjectKeys, cn } from "@/utils/common";
 import { dayjs } from "@/utils/dayjs";
+import { encodeBanTinPath } from "@/utils/path";
 import { api } from "@/utils/trpc/react";
 import type { RouterInputs, RouterOutputs } from "@/utils/trpc/shared";
 
+import { TablePagination } from "../TablePagination";
 import { CategoriesActions } from "./CategoriesActions";
 import { NewActions } from "./NewActions";
 
@@ -32,11 +34,12 @@ import {
 	TableColumn,
 	TableHeader,
 	TableRow,
+	Tooltip,
 	User,
 } from "@nextui-org/react";
 import type { TrangThai } from "@prisma/client";
 
-import { ChevronDownIcon, Plus, RotateCcw, SearchIcon } from "lucide-react";
+import { ChevronDown, ChevronDownIcon, Plus, RotateCcw, SearchIcon } from "lucide-react";
 import { type ChangeEvent, useCallback, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 
@@ -74,14 +77,13 @@ const status: Record<TrangThai, string> = {
 const perPage = [6, 12, 18, 25, 50] as const;
 
 type PropsType = {
-	currentUserId: string;
 	user: NonNullable<RouterOutputs["admin"]["getCurrentUser"]>;
 	initialNews: RouterOutputs["admin"]["getNews"];
 	initialCategories: RouterOutputs["common"]["getCategories"];
 	staff?: RouterOutputs["admin"]["getUsers"];
 };
 
-export const NewsTable = ({ initialNews, user, currentUserId, initialCategories, staff }: PropsType) => {
+export const NewsTable = ({ initialNews, user, initialCategories, staff }: PropsType) => {
 	const [page, setPage] = useState(1);
 	const [rowsPerPage, setRowPerPage] = useState<(typeof perPage)[number]>(6);
 
@@ -119,13 +121,12 @@ export const NewsTable = ({ initialNews, user, currentUserId, initialCategories,
 			},
 		},
 		{
-			placeholderData: initialNews,
+			initialData: initialNews,
 			refetchOnReconnect: false,
 			refetchOnWindowFocus: false,
-			keepPreviousData: true,
 			onError: ({ message }) => toast.error("Lỗi: " + message),
 			onSuccess: () => {
-				const totalPages = Math.ceil(news!.count / rowsPerPage);
+				const totalPages = Math.ceil(news.count / rowsPerPage);
 				if (page > totalPages) setPage(totalPages);
 			},
 		},
@@ -149,10 +150,12 @@ export const NewsTable = ({ initialNews, user, currentUserId, initialCategories,
 		return allColumns.filter((column) => Array.from(visibleColumns).includes(column.uid));
 	}, [visibleColumns]);
 
-	const pages = Math.ceil(news!.count / rowsPerPage);
+	const pages = Math.ceil(news.count / rowsPerPage);
 
 	const sortedItems = useMemo(() => {
-		return [...news!.data].sort((a, b) => {
+		if (isRefetching) return [];
+
+		return [...news.data].sort((a, b) => {
 			const first = a[sortDescriptor.column as keyof newType];
 			const second = b[sortDescriptor.column as keyof newType];
 
@@ -165,7 +168,7 @@ export const NewsTable = ({ initialNews, user, currentUserId, initialCategories,
 			return sortDescriptor.direction === "descending" ? -cmp : cmp;
 		});
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [sortDescriptor, news!.data]);
+	}, [sortDescriptor, news.data, isRefetching]);
 
 	const onRowsPerPageChange = useCallback((e: ChangeEvent<HTMLSelectElement>) => {
 		setRowPerPage(Number(e.target.value.slice("per-page-".length)) as typeof rowsPerPage);
@@ -190,81 +193,67 @@ export const NewsTable = ({ initialNews, user, currentUserId, initialCategories,
 		return (
 			<div className="flex flex-col gap-4">
 				<div className="flex items-end justify-between gap-3">
-					<div className="flex w-full gap-2">
-						<Select
-							defaultSelectedKeys={["Search-Name"]}
-							value={queryNews.value}
-							labelPlacement="outside"
-							classNames={{ base: "w-1/4" }}
-							items={queryType}
-							onChange={(e) => {
-								setQueryNews((prev) => ({
-									...prev,
-									valueType: e.target.value as typeof queryNews.valueType,
-								}));
-							}}
-						>
-							{(item) => <SelectItem key={item.key}>{item.value}</SelectItem>}
-						</Select>
-
-						<Input
-							isClearable
-							className="w-full"
-							placeholder="Tìm kiếm..."
-							startContent={<SearchIcon />}
-							value={queryNews.value}
-							onClear={() => onClear()}
-							onValueChange={onSearchChange}
-						/>
-					</div>
-
-					<div className="flex gap-3">
-						<Dropdown>
-							<DropdownTrigger className="hidden sm:flex">
-								<Button endContent={<ChevronDownIcon className="text-small" />} variant="flat">
-									Cột
-								</Button>
-							</DropdownTrigger>
-							<DropdownMenu
-								disallowEmptySelection
-								aria-label="Table Columns"
-								closeOnSelect={false}
-								selectedKeys={visibleColumns}
-								selectionMode="multiple"
-								onSelectionChange={setVisibleColumns}
-							>
-								{allColumns.map((column) => (
-									<DropdownItem key={column.uid} className="capitalize">
-										{column.name}
-									</DropdownItem>
-								))}
-							</DropdownMenu>
-						</Dropdown>
-
-						{user.VaiTro === "NhanVien" && (
-							<Button startContent={<Plus size={20} />} color="success" as={Link} href="/admin/manage/news/create">
-								Thêm
-							</Button>
-						)}
-					</div>
-				</div>
-
-				<div className="flex items-center justify-between">
-					<span className="text-small text-default-400">Tổng {news!.count} bản tin</span>
-
 					<Select
-						labelPlacement="outside-left"
-						onChange={onRowsPerPageChange}
-						defaultSelectedKeys={["per-page-" + rowsPerPage]}
-						label="Cột từng trang"
-						items={perPage.map((num) => ({ key: "per-page-" + num, value: String(num) }))}
-						classNames={{
-							label: "whitespace-nowrap text-sm",
-							base: "w-[180px] items-center",
+						size="lg"
+						defaultSelectedKeys={["Search-Name"]}
+						value={queryNews.value}
+						labelPlacement="outside"
+						classNames={{ base: "w-1/4", value: "text-small" }}
+						items={queryType}
+						onChange={(e) => {
+							setQueryNews((prev) => ({
+								...prev,
+								valueType: e.target.value as typeof queryNews.valueType,
+							}));
 						}}
 					>
 						{(item) => <SelectItem key={item.key}>{item.value}</SelectItem>}
 					</Select>
+
+					<Input
+						size="sm"
+						radius="lg"
+						isClearable
+						className="w-full"
+						placeholder="Tìm kiếm..."
+						startContent={<SearchIcon />}
+						value={queryNews.value}
+						onClear={() => onClear()}
+						onValueChange={onSearchChange}
+					/>
+
+					<Dropdown>
+						<DropdownTrigger className="hidden sm:flex">
+							<Button size="lg" className="text-small" endContent={<ChevronDownIcon />} variant="flat">
+								Cột
+							</Button>
+						</DropdownTrigger>
+						<DropdownMenu
+							disallowEmptySelection
+							aria-label="Table Columns"
+							closeOnSelect={false}
+							selectedKeys={visibleColumns}
+							selectionMode="multiple"
+							onSelectionChange={setVisibleColumns}
+						>
+							{allColumns.map((column) => (
+								<DropdownItem key={column.uid} className="capitalize">
+									{column.name}
+								</DropdownItem>
+							))}
+						</DropdownMenu>
+					</Dropdown>
+
+					{["NhanVien", "QuanTriVien"].includes(user.VaiTro) && (
+						<Button
+							size="lg"
+							isIconOnly
+							startContent={<Plus size={20} />}
+							color="success"
+							as={Link}
+							href="/admin/manage/news/create"
+						/>
+					)}
 				</div>
 
 				<div
@@ -276,9 +265,11 @@ export const NewsTable = ({ initialNews, user, currentUserId, initialCategories,
 					{staff && (
 						<Select
 							size="sm"
+							radius="lg"
 							label="Phân loại nhân viên"
 							selectionMode="multiple"
 							items={staff.data}
+							classNames={{ popoverContent: "min-w-max" }}
 							onChange={(e) => {
 								setQueryNews((prev) => ({ ...prev, queryStaff: e.target.value.split(",").filter((role) => role.length) }));
 							}}
@@ -304,6 +295,8 @@ export const NewsTable = ({ initialNews, user, currentUserId, initialCategories,
 
 					<Select
 						size="sm"
+						radius="lg"
+						classNames={{ popoverContent: "min-w-max" }}
 						label="Phân loại trạng thái"
 						selectionMode="multiple"
 						onChange={(e) => {
@@ -327,6 +320,7 @@ export const NewsTable = ({ initialNews, user, currentUserId, initialCategories,
 					<div className="flex">
 						<Select
 							size="sm"
+							radius="lg"
 							label="Phân danh mục"
 							selectionMode="multiple"
 							classNames={{
@@ -377,47 +371,75 @@ export const NewsTable = ({ initialNews, user, currentUserId, initialCategories,
 			</div>
 		);
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [queryNews, visibleColumns, onSearchChange, onRowsPerPageChange, news!.count, hasSearchFilter, isRefetching]);
-
-	const onNextPage = useCallback(() => {
-		if (page < pages) {
-			setPage(page + 1);
-		}
-	}, [page, pages]);
-
-	const onPreviousPage = useCallback(() => {
-		if (page > 1) {
-			setPage(page - 1);
-		}
-	}, [page]);
+	}, [queryNews, visibleColumns, onSearchChange, onRowsPerPageChange, news.count, hasSearchFilter, isRefetching]);
 
 	const bottomContent = useMemo(() => {
 		return (
-			<div className="flex items-center justify-between px-2 py-2">
-				<Button isDisabled={pages <= 1 || isRefetching} color="primary" onPress={onPreviousPage}>
-					Previous
-				</Button>
+			<div className="flex items-center justify-between">
+				<section className="flex items-center justify-center gap-2 whitespace-nowrap text-small text-default-400">
+					<span>Hiển thị</span>
 
-				{pages > 0 && (
-					<Pagination isDisabled={isRefetching} showShadow color="primary" page={page} total={pages} onChange={setPage} />
-				)}
+					<Select
+						size="sm"
+						onChange={onRowsPerPageChange}
+						defaultSelectedKeys={["per-page-" + rowsPerPage]}
+						items={perPage.map((num) => ({ key: "per-page-" + num, value: String(num) }))}
+						selectorIcon={<ChevronDown />}
+						classNames={{
+							label: "whitespace-nowrap",
+							base: "w-[70px]",
+							trigger: "h-max min-h-0",
+							popoverContent: "w-max",
+						}}
+					>
+						{(item) => (
+							<SelectItem key={item.key} className="px-1.5 py-1">
+								{item.value}
+							</SelectItem>
+						)}
+					</Select>
 
-				<Button isDisabled={pages <= 1 || isRefetching} color="primary" onPress={onNextPage}>
-					Next
-				</Button>
+					<span>trong tổng số {news.count} bản tin.</span>
+				</section>
+
+				<TablePagination data={news} isRefetching={isRefetching} page={page} rowsPerPage={rowsPerPage} setPage={setPage} />
 			</div>
 		);
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [page, pages, isRefetching, news!.count]);
+	}, [page, pages, isRefetching, news.count]);
 
 	const renderCell = useCallback((banTin: newType, columnKey: (typeof allColumns)[number]["uid"]) => {
 		let cellValue = banTin[columnKey as keyof newType];
-		if (cellValue instanceof Date) cellValue = dayjs(cellValue).format("DD/MM/YYYY - HH:mm:ss");
 
 		// * NOTE: Prevent typescript from being mad
 		if (typeof cellValue === "object") cellValue = "";
 
 		switch (columnKey) {
+			case "TenBanTin": {
+				const banTinPath = encodeBanTinPath(banTin);
+
+				return (
+					<div className="flex gap-4">
+						<Link href={banTinPath}>
+							<Image
+								classNames={{ wrapper: "aspect-video w-40", img: "w-full h-full object-center object-cover" }}
+								src={banTin.PreviewImage}
+								alt={banTin.NoiDungTomTat}
+								width="144"
+								height="81"
+							/>
+						</Link>
+
+						<Link href={banTinPath}>
+							<div className="flex max-w-sm flex-col justify-between gap-1">
+								<h3 className="text-lg font-semibold">{banTin.TenBanTin}</h3>
+								<span className="line-clamp-2 text-sm">{banTin.NoiDungTomTat}</span>
+							</div>
+						</Link>
+					</div>
+				);
+			}
+
 			case "TrangThai": {
 				const trangThai = cellValue as keyof typeof status;
 
@@ -438,25 +460,6 @@ export const NewsTable = ({ initialNews, user, currentUserId, initialCategories,
 				);
 			}
 
-			case "TenBanTin": {
-				return (
-					<div className="flex gap-4">
-						<Image
-							classNames={{ wrapper: "aspect-video w-36", img: "w-full h-full object-center object-cover" }}
-							src={banTin.PreviewImage}
-							alt={banTin.NoiDungTomTat}
-							width="144"
-							height="81"
-						/>
-
-						<div className="flex max-w-md flex-col justify-between gap-1">
-							<h3 className="font-semibold">{banTin.TenBanTin}</h3>
-							<span className="line-clamp-2 text-sm">{banTin.NoiDungTomTat}</span>
-						</div>
-					</div>
-				);
-			}
-
 			case "MaNhanVien": {
 				return (
 					<User
@@ -467,14 +470,19 @@ export const NewsTable = ({ initialNews, user, currentUserId, initialCategories,
 				);
 			}
 
+			case "NgayDang": {
+				const date = dayjs(banTin.NgayDang);
+
+				return (
+					<Tooltip showArrow content={date.format("DD MMMM, YYYY, HH:mm")}>
+						<span>{date.fromNow()}</span>
+					</Tooltip>
+				);
+			}
+
 			case "Actions": {
 				return (
-					<NewActions
-						user={user}
-						banTin={banTin}
-						currentUserId={currentUserId}
-						refetch={async () => await Promise.all([refetchData(), refetchCategories()])}
-					/>
+					<NewActions user={user} banTin={banTin} refetch={async () => await Promise.all([refetchData(), refetchCategories()])} />
 				);
 			}
 
@@ -510,7 +518,7 @@ export const NewsTable = ({ initialNews, user, currentUserId, initialCategories,
 			<TableBody
 				isLoading={isRefetching}
 				loadingContent={<Spinner label="Đang tải..." />}
-				emptyContent="Không tìm thấy bản tin nào"
+				emptyContent={isRefetching ? undefined : "Không tìm thấy bản tin nào"}
 				items={sortedItems}
 			>
 				{(item) => (

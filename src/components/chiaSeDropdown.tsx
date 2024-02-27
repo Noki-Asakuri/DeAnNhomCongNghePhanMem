@@ -8,13 +8,13 @@ import { Button, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger, Link } f
 import { Copy, Heart, MoreHorizontal, Twitter } from "lucide-react";
 import { toast } from "react-hot-toast";
 
-type PropsParms = { duongDanBanTin: string; tenBanTin: string; host: string; maBanTin: string; refetch?: () => Promise<unknown> };
+type PropsParms = { duongDanBanTin: string; tenBanTin: string; maBanTin: string; refetch?: () => Promise<unknown> };
 
-export const ChiaSeDropdown = ({ duongDanBanTin, tenBanTin, maBanTin, host, refetch }: PropsParms) => {
+export const ChiaSeDropdown = ({ duongDanBanTin, tenBanTin, maBanTin, refetch }: PropsParms) => {
 	const tweetUrl = new URL("https://twitter.com/intent/tweet");
 
 	tweetUrl.searchParams.set("text", tenBanTin);
-	tweetUrl.searchParams.set("url", getUrl(host, duongDanBanTin));
+	tweetUrl.searchParams.set("url", getUrl(duongDanBanTin));
 
 	const {
 		data,
@@ -54,7 +54,7 @@ export const ChiaSeDropdown = ({ duongDanBanTin, tenBanTin, maBanTin, host, refe
 							variant="light"
 							className="w-full justify-start p-0 data-[hover=true]:bg-transparent"
 							onPress={async () => {
-								await window.navigator.clipboard.writeText(getUrl(host, duongDanBanTin, true));
+								await window.navigator.clipboard.writeText(getUrl(duongDanBanTin));
 								toast.success("Copy đường dẫn thành công!");
 							}}
 						>
