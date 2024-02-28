@@ -58,7 +58,7 @@ export const BanTinHot = ({ banTin }: ParamsType) => {
 			/>
 
 			<Card as={"div"} isHoverable isPressable className="h-full shadow-[4px_4px_10px_1px_rgba(0,0,0,0.25)] shadow-default-200/60">
-				<NextLink className="block aspect-video h-auto w-full" href={banTinPath}>
+				<NextLink className="block aspect-video h-auto w-full overflow-hidden" href={banTinPath}>
 					<Image
 						removeWrapper
 						className="h-full w-full rounded-b-none object-cover"
@@ -91,3 +91,4 @@ export const BanTinHot = ({ banTin }: ParamsType) => {
 		</div>
 	);
 };
+
